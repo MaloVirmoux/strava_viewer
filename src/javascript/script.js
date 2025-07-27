@@ -1,12 +1,12 @@
-import * as login_conf from "../conf/login.json";
+import * as connectors_conf from "../conf/connectors.json";
 
-import { getStravaToken } from "./python_api";
+import { loginToStrava } from "./python_api";
 
 // Update the Strava login button URL
 function setStravaOAuthURL() {
-	const url = new URL(login_conf["strava_oauth"]["url"]);
+	const url = new URL(connectors_conf["strava_oauth"]["url"]);
 	for (const [param_name, param_value] of Object.entries(
-		login_conf["strava_oauth"]["params"]
+		connectors_conf["strava_oauth"]["params"]
 	)) {
 		url.searchParams.append(param_name, param_value);
 	}
@@ -25,5 +25,5 @@ function getClientCode() {
 
 const client_code = getClientCode();
 if (client_code) {
-	getStravaToken(client_code);
+	loginToStrava(client_code);
 }

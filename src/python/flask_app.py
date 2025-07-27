@@ -1,10 +1,13 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-from dotenv import load_dotenv
-import os
+"""Module used to communicate with the JS and run the backend app"""
 
-from conf import Conf
-from api.strava import login_to_strava
+import datetime
+
+from dotenv import load_dotenv
+from flask import Flask, request
+from flask_cors import CORS
+
+from python.connectors import Postgres, Strava
+from python.utils import SQL, Conf
 
 # Create app
 app = Flask(__name__)
@@ -13,21 +16,33 @@ CORS(app)
 # Load env & conf
 load_dotenv()
 conf = Conf()
-conf.strava_token["params"]["client_secret"] = os.environ["CLIENT_SECRET"]
+
+# Create connectors
+sql = SQL()
+postgres = Postgres(conf, sql)
+strava = Strava(conf, postgres)
 
 
-@app.route("/")
-def home():
-    return "Hello world"
-
-
-@app.route("/get_token", methods=["GET"])
+@app.route("/login", methods=["GET"])
 def login():
+    """Login the user onto Strava"""
     client_code = request.args.get("client_code")
     conf.strava_token["params"]["code"] = client_code
-    login_to_strava(conf)
+    token = strava.get_token()
 
-    return jsonify(reply=f"Received: {client_code}")
+    username = f'{token["athlete"]["firstname"]} {token["athlete"]["lastname"]}'.strip()
+    postgres.save_user(
+        {
+            "user_id": token["athlete"]["id"],
+            "user_name": username,
+            "access_token": token["access_token"],
+            "expires_date": datetime.datetime.fromtimestamp(token["expires_at"]),
+            "refresh_token": token["refresh_token"],
+            "last_connection": datetime.datetime.now(),
+        }
+    )
+
+    return username
 
 
 if __name__ == "__main__":

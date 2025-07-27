@@ -1,4 +1,8 @@
 {
+	"postgres": {
+		"database_name": "postgres",
+		"username": "postgres"
+	},
 	"strava_oauth": {
 		"url": "https://www.strava.com/oauth/authorize",
 		"params": {
