@@ -11,6 +11,8 @@ class Conf:
         self.postgres = {}
         self.strava_oauth = {}
         self.strava_token = {}
+        self.strava_bearer_token = None
+        self.strava_activities_list = {}
 
         with open("../conf/connectors.json", "r", encoding="utf-8") as f:
             connectors_conf = json.load(f)
