@@ -3,6 +3,7 @@
 }
 
 .wrapper form .input-box {
+    position: relative;
     height: 52px;
     margin: 18px 0;
 }
@@ -23,6 +24,30 @@ form .input-box input {
 
 .input-box input:focus,
 .input-box input:valid {
+    border-color: var(--blue);
+}
+
+form .input-box label {
+    display: block;
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    font-size: 17px;
+    color: var(--dark-gray);
+    background-color: var(--white);
+    transition: all 0.2s ease-in-out;
+    cursor: text;
+}
+
+form .input-box input:focus ~ label,
+form .input-box input:not(:placeholder-shown):not(:focus) ~ label {
+    top: 0;
+    left: 25px;
+    font-size: 12px;
+    padding: 0 5px;
+    border-width: 0 1px;
+    border-style: solid;
     border-color: var(--blue);
 }
 

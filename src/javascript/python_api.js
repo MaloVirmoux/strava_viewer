@@ -1,3 +1,7 @@
+/**
+ * Logins to Strava using the provided client code
+ * @param {String} client_code Client code provided by Strava
+ */
 export function loginToStrava(client_code) {
     $.ajax({
         type: "GET",
@@ -7,10 +11,18 @@ export function loginToStrava(client_code) {
     });
 }
 
+/**
+ * Callback from the login backend
+ * @param {*} response
+ */
 function callbackLoginToStrava(response) {
     console.log(response + " is connected !");
 }
 
+/**
+ * Gets the activities from the Strava API
+ * @param {*} response
+ */
 export function getActivites(client_code) {
     $.ajax({
         type: "GET",
@@ -20,6 +32,10 @@ export function getActivites(client_code) {
     });
 }
 
+/**
+ * Callback from the activities backend
+ * @param {*} response
+ */
 function callbackGetActivities(response) {
     console.log("Activities imported !");
 }

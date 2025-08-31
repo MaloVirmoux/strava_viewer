@@ -5,65 +5,88 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Strava Viewer - Sign up</title>
         <link rel="stylesheet" href="../css/common.css" />
+        <style>
+            :root {
+                --underline-width: 80px;
+            }
+        </style>
     </head>
-    <style>
-        :root {
-            --underline-width: 80px;
-        }
-    </style>
     <body>
         <div class="wrapper">
             <h1>Create your account</h1>
-            <form action="">
+            <form action="" id="sign_up_form">
                 <div class="input-box">
                     <input
                         type="email"
-                        placeholder="Enter your email"
+                        name="email"
                         id="email_input"
+                        placeholder=""
+                        autocomplete="email"
                         required
                     />
+                    <label id="email_label" for="email_input"> Email </label>
                 </div>
                 <div class="input-box">
                     <input
                         type="password"
-                        placeholder="Enter your password"
+                        name="password_1"
                         id="password_input_1"
+                        placeholder=""
+                        autocomplete="new-password"
                         required
                     />
+                    <label id="password_label_1" for="password_input_1">
+                        Password
+                    </label>
                 </div>
                 <div class="input-box">
                     <input
                         type="password"
-                        placeholder="Repeat your password"
+                        name="password_2"
                         id="password_input_2"
+                        placeholder=""
+                        autocomplete="new-password"
                         required
                     />
+                    <label id="password_label_2" for="password_input_2">
+                        Repeat your password
+                    </label>
                 </div>
                 <div class="input-box">
                     <input
                         type="text"
-                        placeholder="Enter your firstname"
+                        name="firstname"
                         id="firstname_input"
+                        placeholder=""
+                        autocomplete="given-name"
                         required
                     />
+                    <label id="firstname_label" for="firstname_input">
+                        First name
+                    </label>
                 </div>
                 <div class="input-box">
                     <input
                         type="text"
-                        placeholder="Enter your lastname"
-                        id="firstname_input"
+                        name="lastname"
+                        id="lastname_input"
+                        placeholder=""
+                        autocomplete="family-name"
                         required
                     />
+                    <label id="lastname_label" for="lastname_input">
+                        Last name
+                    </label>
                 </div>
                 <div class="input-box button">
-                    <input type="Submit" value="Register Now" />
+                    <input type="submit" value="Register Now" />
                 </div>
                 <div class="text">
-                    <h2>Already have an account? <a href="#">Login now</a></h3>
+                    <h2>Already have an account ? <a href="#">Login now</a></h2>
                 </div>
             </form>
         </div>
     </body>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script type="module" src="../javascript/script.js"></script>
+    <script type="module" src="../javascript/sign_up.js"></script>
 </html>
