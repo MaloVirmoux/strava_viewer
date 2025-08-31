@@ -1,14 +1,33 @@
 <!DOCTYPE html>
 <html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Strava Viewer</title>
-</head>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-<script type="module" src="src/javascript/script.js"></script>
-<body>
-    <a id="strava_login" href="">Login to Strava</a>
-    <button id="get_activities">Get activities</button>
-</body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Strava Viewer</title>
+        <link rel="stylesheet" href="src/css/common.css" />
+    </head>
+    <style>
+        :root {
+            --underline-width: 155px;
+        }
+    </style>
+    <body>
+        <div class="wrapper">
+            <h1>Strava Viewer</h1>
+            <div class="link-box">
+                <a href="src/html/sign_up.html">Create an account</a>
+            </div>
+            <div class="link-box">
+                <a href="">Log in</a>
+            </div>
+            <div class="link-box">
+                <a id="strava_login" href="">Login to Strava</a>
+            </div>
+            <div class="link-box">
+                <button id="get_activities">Get activities</button>
+            </div>
+        </div>
+    </body>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script type="module" src="src/javascript/script.js"></script>
 </html>

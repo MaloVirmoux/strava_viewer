@@ -1,0 +1,11 @@
+@import url("https://fonts.googleapis.com/css?family=Poppins:400,500,600,700&display=swap");
+
+:root {
+    --blue: #4070f4;
+    --dark-blue: #0e4bf1;
+    --light-gray: #c7bebe;
+    --medium-gray: #707070;
+    --dark-gray: #333333;
+    --white: #ffffff;
+    --transparent: rgba(0, 0, 0, 0.2);
+}
