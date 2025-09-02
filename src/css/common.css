@@ -26,6 +26,16 @@ body {
     box-shadow: 0 5px 10px var(--transparent);
 }
 
+@media only screen and (max-device-width: 600px) {
+    body {
+        background: var(--white);
+    }
+
+    .wrapper {
+        box-shadow: none;
+    }
+}
+
 .wrapper h1 {
     position: relative;
     font-size: 22px;
@@ -71,5 +81,5 @@ body {
 }
 
 .wrapper .link-box:hover {
-    transform: scale(102%);
+    background: var(--light-gray);
 }

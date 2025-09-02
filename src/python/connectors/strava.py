@@ -1,7 +1,6 @@
 """Module used to communicate with the Strava API"""
 
 import requests
-
 from connectors import Postgres
 from utils import Conf
 
@@ -13,7 +12,7 @@ class Strava:
         self.conf = conf
         self.postgres = postgres
 
-    def get_token(self) -> dict:
+    def get_token(self) -> tuple[bool, dict]:
         """Gets the token to connect to the API as the current user"""
         res = requests.post(
             url=self.conf.strava_token["url"],
@@ -21,7 +20,10 @@ class Strava:
             timeout=10,
         )
 
-        return res.json()
+        if res.status_code == 200:
+            return (True, res.json())
+
+        return (False, {"status": res.status_code})
 
     def get_activities_list(self, page: int) -> list:
         """

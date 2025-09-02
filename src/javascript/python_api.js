@@ -3,20 +3,48 @@
  * @param {String} client_code Client code provided by Strava
  */
 export function loginToStrava(client_code) {
+    var result;
     $.ajax({
         type: "GET",
-        url: "http://127.0.0.1:5000/login",
+        async: false,
+        url: "http://127.0.0.1:5000/login_to_strava",
         data: { client_code: client_code },
-        success: callbackLoginToStrava,
+        success: (response) => {
+            result = response;
+        },
+        error: () => {
+            result = { status: false };
+        },
     });
+
+    return result;
 }
 
 /**
- * Callback from the login backend
- * @param {*} response
+ * Logins to Strava using the provided client code
+ * @param {Object} account_details Account details
+ * @param {String} account_details.email Email of the user
+ * @param {String} account_details.password Password of the user
+ * @param {String} account_details.firstname First name of the user
+ * @param {String} account_details.lastname Last name of the user
  */
-function callbackLoginToStrava(response) {
-    console.log(response + " is connected !");
+export function createAccount(account_details) {
+    var result;
+    $.ajax({
+        type: "POST",
+        async: false,
+        url: "http://127.0.0.1:5000/create_account",
+        data: JSON.stringify(account_details),
+        contentType: "application/json; charset=utf-8",
+        success: () => {
+            result = { status: true };
+        },
+        error: (response) => {
+            result = { status: false, error: response.responseJSON.exception };
+        },
+    });
+
+    return result;
 }
 
 /**
@@ -28,14 +56,8 @@ export function getActivites(client_code) {
         type: "GET",
         url: "http://127.0.0.1:5000/get_activites",
         data: { client_code: client_code },
-        success: callbackGetActivities,
+        success: () => {
+            console.log("Activities imported !");
+        },
     });
-}
-
-/**
- * Callback from the activities backend
- * @param {*} response
- */
-function callbackGetActivities(response) {
-    console.log("Activities imported !");
 }
