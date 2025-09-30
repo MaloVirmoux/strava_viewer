@@ -21,4 +21,6 @@ class Conf:
             setattr(self, key, value)
 
         self.postgres["password"] = os.environ["POSTGRES_PASSWORD"]
-        self.strava_token["params"]["client_secret"] = os.environ["CLIENT_SECRET"]
+        self.strava_token["params"]["client_secret"] = os.environ[
+            "STRAVA_CLIENT_SECRET"
+        ]

@@ -5,7 +5,7 @@ import json
 
 from connectors import Postgres, Strava
 from dotenv import load_dotenv
-from flask import Flask, Response, request
+from flask import Flask, Response, request, session
 from flask_cors import CORS
 from utils import SQL, Account, Conf
 

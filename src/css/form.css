@@ -48,6 +48,7 @@ form .input-box label {
     cursor: text;
 }
 
+form .input-box input:-webkit-autofill ~ label,
 form .input-box input:focus ~ label,
 form .input-box input:not(:placeholder-shown):not(:focus) ~ label {
     top: 0;
