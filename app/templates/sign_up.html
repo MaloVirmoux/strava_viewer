@@ -1,0 +1,98 @@
+{% extends "layout.html" %}
+
+{% block title %}Strava Viewer - Sign up{% endblock %}
+
+{% block css %}
+    {{ super() }}
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css"/>
+{% endblock %}
+
+{% block wrapper %}
+    <h1>Create your account</h1>
+    <form action="" id="sign_up_form">
+        <div id="step_1" class="step">
+            <div class="text">
+                <h2>Step 1 - Link your Strava</h2>
+            </div>
+            <div class="link-box">
+                <a id="strava_login" href="{{ strava_login_url }}">Login to Strava</a>
+            </div>
+        </div>
+        <div id="step_2" class="step">
+            <div class="text">
+                <h2>Step 2 - Fulfill your informations</h2>
+            </div>
+            <div class="input-box">
+                <input
+                    type="email"
+                    name="email"
+                    id="email_input"
+                    placeholder=""
+                    autocomplete="email"
+                    required
+                />
+                <label id="email_label" for="email_input">
+                    Email
+                </label>
+            </div>
+            <div class="input-box">
+                <input
+                    type="password"
+                    name="password"
+                    id="password_input"
+                    placeholder=""
+                    pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+                    autocomplete="new-password"
+                    required
+                />
+                <label id="password_label" for="password_input">
+                    Password
+                </label>
+                <i
+                    id="show_password"
+                    class="fa-solid fa-eye show_password"
+                ></i>
+            </div>
+            <div class="input-box">
+                <input
+                    type="text"
+                    name="firstname"
+                    id="firstname_input"
+                    placeholder=""
+                    autocomplete="given-name"
+                    required
+                />
+                <label id="firstname_label" for="firstname_input">
+                    First name
+                </label>
+            </div>
+            <div class="input-box">
+                <input
+                    type="text"
+                    name="lastname"
+                    id="lastname_input"
+                    placeholder=""
+                    autocomplete="family-name"
+                    required
+                />
+                <label id="lastname_label" for="lastname_input">
+                    Last name
+                </label>
+            </div>
+            <div class="input-box button submit">
+                <input type="submit" value="Register Now" />
+            </div>
+        </div>
+        <div class="text">
+            <h2>
+                Already have an account ?
+                <a href="login.html">Login now</a>
+            </h2>
+        </div>
+    </form>
+{% endblock %}
+
+{% block script %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script type="module" src="{{ url_for('static', filename='js/sign_up.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+
+{% block title %}Strava Viewer{% endblock %}
+
+{% block css %}
+    {{ super() }}
+{% endblock %}
+
+{% block wrapper %}
+{% endblock %}
+
+{% block script %}
+{% endblock %}

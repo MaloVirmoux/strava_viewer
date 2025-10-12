@@ -1,0 +1,17 @@
+{% extends "layout.html" %}
+
+{% block title %}Strava Viewer{% endblock %}
+
+{% block css %}
+    {{ super() }}
+{% endblock %}
+
+{% block wrapper %}
+    <h1>Strava Viewer</h1>
+    <div class="link-box">
+        <a href="sign_up">Create an account</a>
+    </div>
+    <div class="link-box">
+        <a href="login">Log in</a>
+    </div>
+{% endblock %}
