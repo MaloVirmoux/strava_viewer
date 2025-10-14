@@ -1,5 +1,6 @@
 @import url("consts.css");
 @import url("form.css");
+@import url("profile.css");
 
 * {
     margin: 0;
@@ -38,6 +39,7 @@ body {
 
 .wrapper h1 {
     position: relative;
+    margin-bottom: 30px;
     font-size: 22px;
     font-weight: 600;
     color: var(--dark-gray);
@@ -52,6 +54,22 @@ body {
     width: var(--underline-width);
     border-radius: 12px;
     background: var(--blue);
+}
+
+.wrapper h2 {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--dark-gray);
+    text-align: center;
+}
+
+.wrapper h2 a {
+    color: var(--blue);
+    text-decoration: none;
+}
+
+.wrapper h2 a:hover {
+    text-decoration: underline;
 }
 
 .wrapper .link-box {

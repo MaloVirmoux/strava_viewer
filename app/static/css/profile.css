@@ -1,0 +1,25 @@
+.profile {
+    display: flex;
+    gap: 30px;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.profile .profile_picture {
+    width: 100px;
+    border-radius: 50%;
+}
+
+.profile h1 {
+    height: 100%;
+    margin-bottom: 10px !important;
+}
+
+.profile p {
+    width: 100%;
+    font-size: 12px;
+    font-weight: 300;
+    font-style: italic;
+    color: var(--medium-gray);
+    text-align: center;
+}

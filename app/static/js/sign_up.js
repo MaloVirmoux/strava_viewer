@@ -116,9 +116,7 @@ function submitSignUpForm() {
     };
 
     const result = signUp(user_details);
-    if (result.status) {
-        // Todo Redirect the user to the login form
-    } else {
+    if (result.status == false) {
         window.alert(result.error);
     }
 }

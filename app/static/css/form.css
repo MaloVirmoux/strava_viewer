@@ -1,6 +1,6 @@
-.wrapper form {
+/* .wrapper form {
     margin-top: 30px;
-}
+} */
 
 .wrapper form .step {
     display: none;
@@ -73,10 +73,7 @@ form .input-box .show_password {
 }
 
 form h2 {
-    color: var(--medium-gray);
-    font-size: 14px;
-    font-weight: 500;
-    margin-left: 10px;
+    color: var(--medium-gray) !important;
 }
 
 .input-box.button input {
@@ -89,19 +86,4 @@ form h2 {
 
 .input-box.button input:hover {
     background: var(--dark-blue);
-}
-
-form .text h2 {
-    color: var(--dark-gray);
-    width: 100%;
-    text-align: center;
-}
-
-form .text h2 a {
-    color: var(--blue);
-    text-decoration: none;
-}
-
-form .text h2 a:hover {
-    text-decoration: underline;
 }

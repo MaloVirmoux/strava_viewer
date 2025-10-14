@@ -7,5 +7,33 @@
 {% endblock %}
 
 {% block wrapper %}
-    <h1>Hello {{ firstname }} {{ lastname }} !</h1>
+    <div class="profile">
+        <img src="{{ profile_picture_url }}" class="profile_picture" alt="Profile picture">
+        <div>
+            <h1>Hey {{ firstname }} {{ lastname }} !</h1>
+            <h2>
+                {% if number_of_activities == 0 %}
+                    No activity imported
+                {% elif number_of_activities == 1 %}
+                    1 activity imported
+                {% else %}
+                    {{ number_of_activities }} activities imported
+                {% endif %}
+            </h2>
+            <p>Last update : {{ last_update }}</p>
+        </div>
+    </div>
+    <div class="link-box">
+        <a href="map">View the map</a>
+    </div>
+    <div class="link-box">
+        <a href="">Refresh the activities</a>
+    </div>
+    <h2>            
+        <a href="manage">Manage your account</a>
+    </h2>
+    <h2>            
+        <a href="logout">Log out</a>
+    </h2>
+    </div>
 {% endblock %}

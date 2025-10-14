@@ -3,14 +3,14 @@
 import datetime
 import json
 import urllib.parse
+
 import flask
 import flask_login
 from argon2 import PasswordHasher
-from dotenv import load_dotenv
-from flask_cors import CORS
-
 from assets import User
 from connectors import Postgres, Strava
+from dotenv import load_dotenv
+from flask_cors import CORS
 from loaders import SQL, Conf
 
 # Load env & conf
@@ -23,6 +23,7 @@ CORS(app)
 
 app.secret_key = conf.flask["secret_key"]
 login_manager = flask_login.LoginManager()
+login_manager.login_view = "/login"
 login_manager.init_app(app)
 
 password_hasher = PasswordHasher()
@@ -49,15 +50,22 @@ def load_user(user_email):
         return None
     return user
 
+
 @app.route("/", methods=["GET"])
 def index():
-    return flask.render_template("index.html")
+    """Gets to the homepage is the user is anonymous, to the userpage if he's logged in"""
+    if flask_login.current_user.is_authenticated:
+        return flask.redirect("/home")
+    else:
+        return flask.render_template("index.html")
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
+    """Logs in the user to the website"""
     if flask.request.method == "GET":
         return flask.render_template("login.html")
-    
+
     elif flask.request.method == "POST":
         """Login into an existing user"""
         login_details = flask.request.get_json()
@@ -65,21 +73,26 @@ def login():
 
         if password_hasher.verify(user.password, login_details["password"]):
             flask_login.login_user(user, remember=True, duration=SESSION_DURATION)
-            return flask.Response(status=HTTP_STATUS_OK)
+            return flask.redirect("/home")
 
         return flask.Response(status=HTTP_STATUS_UNAUTHORIZE)
+
 
 @app.route("/sign_up", methods=["GET", "POST"])
 def sign_up():
     """Create a new user"""
     if flask.request.method == "GET":
-        strava_login_url = "{url}?{query_params}".format(url=conf.strava_oauth["url"], query_params=urllib.parse.urlencode(conf.strava_oauth["params"]))
+        strava_login_url = "{url}?{query_params}".format(
+            url=conf.strava_oauth["url"],
+            query_params=urllib.parse.urlencode(conf.strava_oauth["params"]),
+        )
 
         return flask.render_template("sign_up.html", strava_login_url=strava_login_url)
-    
-    if flask.request.method == "POST": 
+
+    if flask.request.method == "POST":
         user_details = flask.request.get_json()
         user_details["strava_user_id"] = flask.session["strava_user_id"]
+        user_details["profile_picture_url"] = flask.session["profile_picture_url"]
         user_details["strava_access_token"] = flask.session["strava_access_token"]
         user_details["strava_expires_date"] = flask.session["strava_expires_date"]
         user_details["strava_refresh_token"] = flask.session["strava_refresh_token"]
@@ -94,7 +107,15 @@ def sign_up():
                 content_type=JSON_TYPE,
             )
 
-        return flask.Response(status=HTTP_STATUS_CREATED)
+        flask_login.login_user(user, remember=True, duration=SESSION_DURATION)
+        return flask.redirect("/home")
+
+
+@app.route("/logout", methods=["GET"])
+def logout():
+    """Log out the user from the website"""
+    pass
+
 
 @app.route("/get_strava_token", methods=["GET"])
 def get_strava_token():
@@ -107,6 +128,7 @@ def get_strava_token():
         conf.strava_bearer_token = token["access_token"]
 
         flask.session["strava_user_id"] = token["athlete"]["id"]
+        flask.session["profile_picture_url"] = token["athlete"]["profile"]
         flask.session["strava_access_token"] = token["access_token"]
         flask.session["strava_expires_date"] = datetime.datetime.fromtimestamp(
             token["expires_at"]
@@ -130,11 +152,20 @@ def get_strava_token():
             content_type=JSON_TYPE,
         )
 
+
 @app.route("/home", methods=["GET"])
 @flask_login.login_required
 def home():
     user = flask_login.current_user
-    return flask.render_template("home.html", firstname=user.firstname, lastname=user.lastname)
+    return flask.render_template(
+        "home.html",
+        firstname=user.firstname,
+        lastname=user.lastname,
+        profile_picture_url=user.profile_picture_url,
+        number_of_activities=2,
+        last_update=datetime.datetime.now().strftime("%Y/%m/%d - %H:%M"),
+    )
+
 
 # To do : Continue get activities, manage response in case of error
 # @app.route("/get_activites", methods=["GET"])

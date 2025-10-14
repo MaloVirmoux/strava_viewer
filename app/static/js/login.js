@@ -32,15 +32,11 @@ addFormListeners();
  * Submits the form
  */
 function submitLoginForm() {
-    const user_details = {
+    const result = login({
         email: document.getElementById("email_input").value,
         password: document.getElementById("password_input").value,
-    };
-
-    const result = login(user_details);
-    if (result.status) {
-        // Todo Redirect the user to the login form
-    } else {
+    });
+    if (result.status == false) {
         window.alert(result.error);
     }
 }

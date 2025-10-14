@@ -3,7 +3,6 @@
 from typing import Any, Dict, Tuple
 
 import psycopg2
-
 from loaders import SQL, Conf
 
 
@@ -27,7 +26,7 @@ class Postgres:
     def save_user(self, user_data: dict) -> int:
         """Saves the user into the table"""
         with self.connection.cursor() as cursor:
-            cursor.execute(self.sql.format_request(self.sql.save_user, user_data))
+            cursor.execute(self.sql.save_user, user_data)
             updated_row_count = cursor.rowcount
 
         self.connection.commit()
@@ -36,7 +35,7 @@ class Postgres:
     def get_user(self, email: str) -> Dict[str, Any]:
         """Gets the user from the table"""
         with self.connection.cursor() as cursor:
-            cursor.execute(self.sql.format_request(self.sql.get_user, {"email": email}))
+            cursor.execute(self.sql.get_user, {"email": email})
             res = cursor.fetchone()
 
         if isinstance(res, Tuple):
@@ -48,11 +47,12 @@ class Postgres:
                         "firstname",
                         "lastname",
                         "strava_user_id",
+                        "profile_picture_url",
                         "strava_access_token",
                         "strava_expires_date",
                         "strava_refresh_token",
                     ),
-                    res
+                    res,
                 )
             )
 

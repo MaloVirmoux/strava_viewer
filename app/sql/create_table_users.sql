@@ -5,6 +5,7 @@ CREATE TABLE
         firstname varchar,
         lastname varchar,
         strava_user_id varchar,
+        profile_picture_url varchar,
         strava_access_token varchar,
         strava_expires_date timestamp,
         strava_refresh_token varchar,

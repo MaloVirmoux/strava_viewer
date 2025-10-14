@@ -4,7 +4,6 @@ import re
 from typing import Any, Dict, Optional
 
 from argon2 import PasswordHasher
-
 from connectors import Postgres
 
 EMAIL_REGEX = r"^\S+@\S+\.[a-zA-Z]{2,}$"
@@ -45,6 +44,7 @@ class User:
         self.firstname = user_details["firstname"]
         self.lastname = user_details["lastname"]
         self.strava_user_id = user_details["strava_user_id"]
+        self.profile_picture_url = user_details["profile_picture_url"]
         self.strava_access_token = user_details["strava_access_token"]
         self.strava_expires_date = user_details["strava_expires_date"]
         self.strava_refresh_token = user_details["strava_refresh_token"]
@@ -71,6 +71,7 @@ class User:
                 "firstname": self.firstname,
                 "lastname": self.lastname,
                 "strava_user_id": self.strava_user_id,
+                "profile_picture_url": self.profile_picture_url,
                 "strava_access_token": self.strava_access_token,
                 "strava_expires_date": self.strava_expires_date,
                 "strava_refresh_token": self.strava_refresh_token,

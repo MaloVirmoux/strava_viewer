@@ -10,7 +10,3 @@ class SQL:
 
         with open("app/sql/get_user.sql", "r", encoding="utf-8") as f:
             self.get_user = f.read()
-
-    def format_request(self, request: str, to_replace: dict):
-        """Formats a request with the given arguments"""
-        return request.format(**to_replace)

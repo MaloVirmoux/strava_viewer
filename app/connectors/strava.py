@@ -3,7 +3,6 @@
 from typing import Tuple
 
 import requests
-
 from connectors import Postgres
 from loaders import Conf
 
