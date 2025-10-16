@@ -1,0 +1,7 @@
+    {% with flashed_error = get_flashed_messages() %}
+    {% if flashed_error %}
+    <div class="alert-box">
+        <p>{{ flashed_error[0] }}</p>
+    </div>
+    {% endif %}
+    {% endwith %}

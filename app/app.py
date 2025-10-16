@@ -1,13 +1,12 @@
 """Module used to communicate with the JS and run the backend app"""
 
 import datetime
-import json
 import urllib.parse
 
 import flask
 import flask_login
 from argon2 import PasswordHasher
-from assets import User
+from assets import UsersManager
 from connectors import Postgres, Strava
 from dotenv import load_dotenv
 from flask_cors import CORS
@@ -33,129 +32,126 @@ sql = SQL()
 postgres = Postgres(conf, sql)
 strava = Strava(conf, postgres)
 
-HTTP_STATUS_OK = 200
-HTTP_STATUS_CREATED = 201
-HTTP_STATUS_UNAUTHORIZE = 401
-HTTP_STATUS_UNACCEPTABLE = 406
-JSON_TYPE = "application/json"
+users_manager = UsersManager(postgres, password_hasher)
 
 SESSION_DURATION = datetime.timedelta(days=conf.flask["session_duration"])
 
 
 @login_manager.user_loader
 def load_user(user_email):
-    try:
-        user = User(postgres, user_email)
-    except AssertionError:
-        return None
-    return user
+    """Mandatory flask function to get the user"""
+    return users_manager.get_user(user_email)
 
 
 @app.route("/", methods=["GET"])
 def index():
-    """Gets to the homepage is the user is anonymous, to the userpage if he's logged in"""
+    """GET returns the homepage is the user is anonymous, or the userpage if he's logged in"""
     if flask_login.current_user.is_authenticated:
-        return flask.redirect("/home")
-    else:
-        return flask.render_template("index.html")
+        return flask.redirect(flask.url_for("home"))
+
+    return flask.render_template("index.html")
 
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    """Logs in the user to the website"""
+    """GET returns the login webpage\n
+    POST logs in the user to the website"""
     if flask.request.method == "GET":
+        if flask_login.current_user.is_authenticated:
+            return flask.redirect(flask.url_for("home"))
+
         return flask.render_template("login.html")
 
-    elif flask.request.method == "POST":
-        """Login into an existing user"""
-        login_details = flask.request.get_json()
-        user = User(postgres, login_details["email"])
+    if flask.request.method == "POST":
+        if users_manager.login_user(
+            flask.request.form["email"], flask.request.form["password"]
+        ):
+            flask_login.login_user(
+                users_manager.get_user(flask.request.form["email"]),
+                remember=True,
+                duration=SESSION_DURATION,
+            )
+            return flask.redirect(flask.url_for("home"))
 
-        if password_hasher.verify(user.password, login_details["password"]):
-            flask_login.login_user(user, remember=True, duration=SESSION_DURATION)
-            return flask.redirect("/home")
+        flask.flash("Wrong email and/or password, please retry")
+        return flask.redirect(flask.url_for("login"))
 
-        return flask.Response(status=HTTP_STATUS_UNAUTHORIZE)
+    return None
 
 
 @app.route("/sign_up", methods=["GET", "POST"])
 def sign_up():
-    """Create a new user"""
+    """GET returns the sign up webpage\n
+    POST creates a new user"""
     if flask.request.method == "GET":
-        strava_login_url = "{url}?{query_params}".format(
+        client_code = flask.request.args.get("code")
+        if client_code:
+            conf.strava_token["params"]["code"] = client_code
+            if token := strava.get_token():
+                conf.strava_bearer_token = token["access_token"]
+
+                flask.session["strava_user_id"] = token["athlete"]["id"]
+                flask.session["profile_picture_url"] = token["athlete"]["profile"]
+                flask.session["strava_access_token"] = token["access_token"]
+                flask.session["strava_expires_date"] = datetime.datetime.fromtimestamp(
+                    token["expires_at"]
+                )
+                flask.session["strava_refresh_token"] = token["refresh_token"]
+
+                return flask.render_template(
+                    "sign_up.html",
+                    step=2,
+                    firstname=token["athlete"]["firstname"],
+                    lastname=token["athlete"]["lastname"],
+                )
+
+            flask.flash("Strava sign up was unsuccessful, please retry")
+
+        strava_login_url = "{url}?{params}".format(
             url=conf.strava_oauth["url"],
-            query_params=urllib.parse.urlencode(conf.strava_oauth["params"]),
+            params=urllib.parse.urlencode(conf.strava_oauth["params"]),
         )
 
-        return flask.render_template("sign_up.html", strava_login_url=strava_login_url)
+        return flask.render_template(
+            "sign_up.html",
+            step=1,
+            strava_login_url=strava_login_url,
+        )
 
     if flask.request.method == "POST":
-        user_details = flask.request.get_json()
-        user_details["strava_user_id"] = flask.session["strava_user_id"]
-        user_details["profile_picture_url"] = flask.session["profile_picture_url"]
-        user_details["strava_access_token"] = flask.session["strava_access_token"]
-        user_details["strava_expires_date"] = flask.session["strava_expires_date"]
-        user_details["strava_refresh_token"] = flask.session["strava_refresh_token"]
+        user_details = {
+            "email": flask.request.form["email"],
+            "password": flask.request.form["password"],
+            "firstname": flask.request.form["firstname"],
+            "lastname": flask.request.form["lastname"],
+            "strava_user_id": flask.session["strava_user_id"],
+            "profile_picture_url": flask.session["profile_picture_url"],
+            "strava_access_token": flask.session["strava_access_token"],
+            "strava_expires_date": flask.session["strava_expires_date"],
+            "strava_refresh_token": flask.session["strava_refresh_token"],
+        }
+        user = users_manager.create_user(user_details)
+        if user:
+            flask_login.login_user(user, remember=True, duration=SESSION_DURATION)
+            return flask.redirect(flask.url_for("home"))
 
-        user = User(postgres)
-        try:
-            user.create(user_details, password_hasher)
-        except AssertionError as e:
-            return flask.Response(
-                json.dumps({"exception": str(e)}),
-                status=HTTP_STATUS_UNACCEPTABLE,
-                content_type=JSON_TYPE,
-            )
+        flask.flash("An error occured, please retry")
+        return flask.redirect(flask.url_for("sign_up"))
 
-        flask_login.login_user(user, remember=True, duration=SESSION_DURATION)
-        return flask.redirect("/home")
+    return None
 
 
 @app.route("/logout", methods=["GET"])
 def logout():
-    """Log out the user from the website"""
-    pass
-
-
-@app.route("/get_strava_token", methods=["GET"])
-def get_strava_token():
-    """Login the user onto Strava"""
-    client_code = flask.request.args.get("client_code")
-    conf.strava_token["params"]["code"] = client_code
-    status, token = strava.get_token()
-
-    if status:
-        conf.strava_bearer_token = token["access_token"]
-
-        flask.session["strava_user_id"] = token["athlete"]["id"]
-        flask.session["profile_picture_url"] = token["athlete"]["profile"]
-        flask.session["strava_access_token"] = token["access_token"]
-        flask.session["strava_expires_date"] = datetime.datetime.fromtimestamp(
-            token["expires_at"]
-        )
-        flask.session["strava_refresh_token"] = token["refresh_token"]
-
-        response = {
-            "status": True,
-            "firstname": token["athlete"]["firstname"],
-            "lastname": token["athlete"]["lastname"],
-        }
-
-        return flask.Response(
-            json.dumps(response), status=HTTP_STATUS_OK, content_type=JSON_TYPE
-        )
-    else:
-        response = {"status": False}
-        return flask.Response(
-            json.dumps(response),
-            status=HTTP_STATUS_UNAUTHORIZE,
-            content_type=JSON_TYPE,
-        )
+    """GET logs out the user from the website"""
+    flask_login.logout_user()
+    return flask.redirect(flask.url_for("index"))
 
 
 @app.route("/home", methods=["GET"])
 @flask_login.login_required
 def home():
+    """GET returns the userpage if he's logged in"""
     user = flask_login.current_user
     return flask.render_template(
         "home.html",

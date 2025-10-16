@@ -9,7 +9,8 @@
 
 {% block wrapper %}
     <h1>Log in your account</h1>
-    <form action="" id="login_form">
+    {% include "flash_message.html" %}
+    <form method="post" id="login_form">
         <div class="input-box">
             <input
                 type="email"

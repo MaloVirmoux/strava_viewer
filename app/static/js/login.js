@@ -1,5 +1,3 @@
-import { login } from "./app_requests.js";
-
 /**
  * Adds all the listeners to update the labels and submit the form
  */
@@ -16,27 +14,6 @@ function addFormListeners() {
                     : "password";
             password_input.setAttribute("type", toggled_type);
         });
-
-    document
-        .getElementById("login_form")
-        .addEventListener("submit", (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            submitLoginForm();
-        });
 }
 
 addFormListeners();
-
-/**
- * Submits the form
- */
-function submitLoginForm() {
-    const result = login({
-        email: document.getElementById("email_input").value,
-        password: document.getElementById("password_input").value,
-    });
-    if (result.status == false) {
-        window.alert(result.error);
-    }
-}
