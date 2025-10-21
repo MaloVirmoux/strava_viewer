@@ -1,0 +1,54 @@
+services:
+    web:
+        build: .
+        image: web_application
+        container_name: web
+        ports: 
+            - 5000:5000
+        command: python app/app.py
+        volumes: 
+            - .:/usr/src/app
+        env_file:
+            - container.env
+        depends_on:
+            - redis
+            - postgres
+
+    worker:
+        image: web_application
+        container_name: celery_worker
+        command: celery --workdir app --app backend.tasks worker --loglevel=info
+        volumes: 
+            - .:/usr/src/app
+        env_file: container.env
+        depends_on:
+            - web
+            - redis
+
+    # dashboard:
+    #     build: .
+    #     container_name: celery_dashboard
+    #     command: celery --workdir app --app backend.tasks flower --port=5555 --broker=redis://redis:6379/0
+    #     ports:
+    #         - 5555:5555
+    #     env_file: container.env
+    #     depends_on:
+    #         - web
+    #         - redis
+    #         - worker
+
+    postgres:
+        container_name: postgres_database
+        image: postgres:latest
+        restart: always
+        env_file:
+            - container.env
+        ports:
+            - 5433:5432
+
+    redis:
+        container_name: redis_broker
+        image: redis:latest
+        restart: always
+        ports:
+            - 6379:6379

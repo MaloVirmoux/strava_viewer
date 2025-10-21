@@ -1,5 +1,6 @@
 """Module used to communicate with the JS and run the backend app"""
 
+import argparse
 import datetime
 import urllib.parse
 
@@ -7,20 +8,22 @@ import flask
 import flask_login
 from argon2 import PasswordHasher
 from assets import UsersManager
-from connectors import Postgres, Strava
+from confs import SQL, Conf
+from connections import Postgres, Strava
 from dotenv import load_dotenv
 from flask_cors import CORS
-from loaders import SQL, Conf
 
 # Load env & conf
-load_dotenv()
-conf = Conf()
+parser = argparse.ArgumentParser()
+parser.add_argument("--env", choices=["local", "container"], default="container")
+load_dotenv(f"{parser.parse_args().env}.env")
+CONF = Conf()
 
 # Create app & init login tools
 app = flask.Flask(__name__)
 CORS(app)
 
-app.secret_key = conf.flask["secret_key"]
+app.secret_key = CONF.FLASK["secret_key"]
 login_manager = flask_login.LoginManager()
 login_manager.login_view = "/login"
 login_manager.init_app(app)
@@ -29,12 +32,10 @@ password_hasher = PasswordHasher()
 
 # Create connectors
 sql = SQL()
-postgres = Postgres(conf, sql)
-strava = Strava(conf, postgres)
+postgres = Postgres(CONF, sql)
+strava = Strava(CONF, postgres)
 
 users_manager = UsersManager(postgres, password_hasher)
-
-SESSION_DURATION = datetime.timedelta(days=conf.flask["session_duration"])
 
 
 @login_manager.user_loader
@@ -69,7 +70,7 @@ def login():
             flask_login.login_user(
                 users_manager.get_user(flask.request.form["email"]),
                 remember=True,
-                duration=SESSION_DURATION,
+                duration=CONF.FLASK["session_duration"],
             )
             return flask.redirect(flask.url_for("home"))
 
@@ -84,11 +85,10 @@ def sign_up():
     """GET returns the sign up webpage\n
     POST creates a new user"""
     if flask.request.method == "GET":
-        client_code = flask.request.args.get("code")
-        if client_code:
-            conf.strava_token["params"]["code"] = client_code
+        if client_code := flask.request.args.get("code"):
+            CONF.STRAVA["get_token"]["params"]["code"] = client_code
             if token := strava.get_token():
-                conf.strava_bearer_token = token["access_token"]
+                CONF.STRAVA["bearer_token"] = token["access_token"]
 
                 flask.session["strava_user_id"] = token["athlete"]["id"]
                 flask.session["profile_picture_url"] = token["athlete"]["profile"]
@@ -108,8 +108,8 @@ def sign_up():
             flask.flash("Strava sign up was unsuccessful, please retry")
 
         strava_login_url = "{url}?{params}".format(
-            url=conf.strava_oauth["url"],
-            params=urllib.parse.urlencode(conf.strava_oauth["params"]),
+            url=CONF.STRAVA["access_oauth"]["url"],
+            params=urllib.parse.urlencode(CONF.STRAVA["access_oauth"]["params"]),
         )
 
         return flask.render_template(
@@ -130,9 +130,12 @@ def sign_up():
             "strava_expires_date": flask.session["strava_expires_date"],
             "strava_refresh_token": flask.session["strava_refresh_token"],
         }
-        user = users_manager.create_user(user_details)
-        if user:
-            flask_login.login_user(user, remember=True, duration=SESSION_DURATION)
+        if user := users_manager.create_user(user_details):
+            flask_login.login_user(
+                user,
+                remember=True,
+                duration=CONF.FLASK["session_duration"],
+            )
             return flask.redirect(flask.url_for("home"))
 
         flask.flash("An error occured, please retry")
@@ -182,4 +185,4 @@ def home():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host=CONF.FLASK["host"], debug=True)

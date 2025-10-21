@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 import argon2
 from argon2 import PasswordHasher
 from assets import User
-from connectors import Postgres
+from connections import Postgres
 
 EMAIL_REGEX = r"^\S+@\S+\.[a-zA-Z]{2,}$"
 PASSWORD_REGEX = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
@@ -21,8 +21,7 @@ class UsersManager:
 
     def get_user(self, email: str) -> Optional[User]:
         """Gets the user associated with the provided email"""
-        user_details = self.postgres.get_user(email)
-        if user_details:
+        if user_details := self.postgres.get_user(email):
             return User(user_details)
         return None
 

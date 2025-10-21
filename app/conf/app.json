@@ -1,5 +1,0 @@
-{
-    "flask": {
-        "session_duration": 90
-    }
-}

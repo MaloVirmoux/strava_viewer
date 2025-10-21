@@ -3,24 +3,24 @@
 from typing import Any, Dict, Tuple
 
 import psycopg2
-from loaders import SQL, Conf
+from confs import SQL, Conf
 
 
 class Postgres:
     """PostgreSQL class to communicate with the database"""
 
-    def __init__(self, conf: Conf, sql: SQL):
-        self.conf = conf
+    def __init__(self, CONF: Conf, sql: SQL):
+        self.CONF = CONF
         self.sql = sql
         self.connection = self._create_new_connection()
 
     def _create_new_connection(self):
         return psycopg2.connect(
-            database=self.conf.postgres["database_name"],
-            host="localhost",
-            port=5432,
-            user=self.conf.postgres["username"],
-            password=self.conf.postgres["password"],
+            database=self.CONF.POSTGRES["database"],
+            host=self.CONF.POSTGRES["host"],
+            port=self.CONF.POSTGRES["port"],
+            user=self.CONF.POSTGRES["user"],
+            password=self.CONF.POSTGRES["password"],
         )
 
     def save_user(self, user_data: dict) -> int:
@@ -57,9 +57,6 @@ class Postgres:
             )
 
         return {}
-
-    #     self.connection.commit()
-    #     return updated_row_count
 
     # def get_activities(
     #     self,

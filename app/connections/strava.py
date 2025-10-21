@@ -3,22 +3,22 @@
 from typing import Optional
 
 import requests
-from connectors import Postgres
-from loaders import Conf
+from confs import Conf
+from connections import Postgres
 
 
 class Strava:
     """Strava class to communicate with the API"""
 
-    def __init__(self, conf: Conf, postgres: Postgres):
-        self.conf = conf
+    def __init__(self, CONF: Conf, postgres: Postgres):
+        self.CONF = CONF
         self.postgres = postgres
 
     def get_token(self) -> Optional[dict]:
         """Gets the token to connect to the API as the current user"""
         res = requests.post(
-            url=self.conf.strava_token["url"],
-            params=self.conf.strava_token["params"],
+            url=self.CONF.STRAVA["get_token"]["url"],
+            params=self.CONF.STRAVA["get_token"]["params"],
             timeout=10,
         )
 
@@ -32,12 +32,14 @@ class Strava:
         Gets the list of activities from the current user,
         which may lack of precision according to user preferences
         """
-        params = self.conf.strava_activities_list["params"]
+        params = self.CONF.STRAVA["get_activities_list"]["params"]
         params["page"] = page
         res = requests.get(
-            url=self.conf.strava_activities_list["url"],
+            url=self.CONF.STRAVA["get_activities_list"]["url"],
             params=params,
-            headers={"Authorization": f"Bearer {self.conf.strava_bearer_token}"},
+            headers={
+                "Authorization": f"Bearer {self.CONF.STRAVA["strava_bearer_token"]}"
+            },
             timeout=10,
         )
 
