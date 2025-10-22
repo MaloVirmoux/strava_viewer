@@ -1,4 +1,4 @@
-"""Module used to communicate with the JS and run the backend app"""
+"""Module used to communicate with the JS and run the app"""
 
 import argparse
 import datetime
@@ -7,11 +7,14 @@ import urllib.parse
 import flask
 import flask_login
 from argon2 import PasswordHasher
-from assets import UsersManager
-from confs import SQL, Conf
-from connections import Postgres, Strava
 from dotenv import load_dotenv
 from flask_cors import CORS
+
+from .activities_imports_manager import ActivitiesImportsManager
+from .confs import SQL, Conf
+from .postgres import Postgres
+from .strava import Strava
+from .users_manager import UsersManager
 
 # Load env & conf
 parser = argparse.ArgumentParser()
@@ -36,6 +39,7 @@ postgres = Postgres(CONF, sql)
 strava = Strava(CONF, postgres)
 
 users_manager = UsersManager(postgres, password_hasher)
+activities_import_manager = ActivitiesImportsManager(postgres)
 
 
 @login_manager.user_loader
@@ -164,6 +168,13 @@ def home():
         number_of_activities=2,
         last_update=datetime.datetime.now().strftime("%Y/%m/%d - %H:%M"),
     )
+
+
+@app.route("/update_activities", methods=["PUT"])
+@flask_login.login_required
+def update_activities():
+    """PUT updates the activites of the user from Strava"""
+    activities_import_manager.import_user_activities(flask_login.current_user.email)
 
 
 # To do : Continue get activities, manage response in case of error

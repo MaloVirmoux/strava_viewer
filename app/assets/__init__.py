@@ -1,4 +1,4 @@
-"""Module used to export the assets classes"""
+"""Module used to export the assets"""
 
-from assets.user import User
-from assets.users_manager import UsersManager
+from .activities_import import ActivitiesImport
+from .user import User

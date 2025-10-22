@@ -4,6 +4,7 @@ import datetime
 import os
 
 
+# pylint: disable=invalid-name
 class Conf:
     """Conf class"""
 

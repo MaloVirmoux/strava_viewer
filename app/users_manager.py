@@ -1,12 +1,12 @@
-"""Module used to manage the users"""
+"""Module used to manage the Users Manager"""
 
 import re
 from typing import Any, Dict, Optional
 
 import argon2
-from argon2 import PasswordHasher
-from assets import User
-from connections import Postgres
+
+from .assets import User
+from .postgres import Postgres
 
 EMAIL_REGEX = r"^\S+@\S+\.[a-zA-Z]{2,}$"
 PASSWORD_REGEX = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
@@ -15,7 +15,7 @@ PASSWORD_REGEX = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?
 class UsersManager:
     """Users Manager class to create and retrieve the users"""
 
-    def __init__(self, postgres: Postgres, password_hasher: PasswordHasher):
+    def __init__(self, postgres: Postgres, password_hasher: argon2.PasswordHasher):
         self.postgres = postgres
         self.password_hasher = password_hasher
 
@@ -42,8 +42,7 @@ class UsersManager:
             and self.verify_if_user_already_exists(user_details["email"])
         ):
             user_details["password"] = self.hash_password(user_details["password"])
-            self.postgres.save_user(user_details)
-            return User(user_details)
+            return self.postgres.create_user(User(user_details))
         return None
 
     def verify_email(self, email: str):

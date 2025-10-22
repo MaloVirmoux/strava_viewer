@@ -1,8 +1,20 @@
-"""Module used to represent the user"""
+"""Module used to manage the User asset"""
 
 
 class User:
-    """User class with mandatory flask funtions"""
+    """User class with mandatory flask functions"""
+
+    SCHEMA = (
+        "email",
+        "password",
+        "firstname",
+        "lastname",
+        "strava_user_id",
+        "profile_picture_url",
+        "strava_access_token",
+        "strava_expires_date",
+        "strava_refresh_token",
+    )
 
     def __init__(self, user_details: dict):
         self.email = user_details["email"]
