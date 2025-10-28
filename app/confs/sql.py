@@ -26,14 +26,3 @@ class SQL:
 
         with open(f"{folder}/delete_activities.sql", "r", encoding="utf-8") as f:
             self.delete_activities = f.read()
-
-        # ========== ACTIVITIES IMPORTS ==========
-        folder = "app/sql/activities_imports"
-        with open(f"{folder}/get_activities_import.sql", "r", encoding="utf-8") as f:
-            self.get_activities_import = f.read()
-
-        with open(f"{folder}/insert_activities_import.sql", "r", encoding="utf-8") as f:
-            self.insert_activities_import = f.read()
-
-        with open(f"{folder}/update_activities_import.sql", "r", encoding="utf-8") as f:
-            self.update_activities_import = f.read()

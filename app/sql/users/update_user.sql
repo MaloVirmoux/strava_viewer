@@ -1,4 +1,4 @@
 UPDATE users
 SET
-    %(value)s
+    %(details)s
 WHERE email = %(email)s

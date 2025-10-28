@@ -7,7 +7,8 @@ SELECT
     profile_picture_url,
     strava_access_token,
     strava_expires_date,
-    strava_refresh_token
+    strava_refresh_token,
+    import_task_id
 FROM
     users
 WHERE

@@ -4,7 +4,7 @@ from typing import Any, Dict, Optional, Tuple
 
 import psycopg2
 
-from .assets import ActivitiesImport, Activity, User
+from .assets import Activity, User
 from .confs import SQL, Conf
 
 
@@ -61,12 +61,12 @@ class Postgres:
 
         return self.res_to_dict(res, User.SCHEMA)
 
-    def update_user_details(self, email: str, values: dict):
-        """Updates the data in the table `users`, values is dict {"column_name" : "new_value"}"""
+    def update_user_details(self, email: str, details: dict):
+        """Updates the data in the table `users`, details is dict {"column_name" : "new_value"}"""
         with self.connection.cursor() as cursor:
             cursor.execute(
                 self.sql.update_user,
-                vars({"email": email, "value": self.dict_to_sql(values)}),
+                vars({"email": email, "details": self.dict_to_sql(details)}),
             )
 
         self.connection.commit()
@@ -94,34 +94,4 @@ class Postgres:
         with self.connection.cursor() as cursor:
             cursor.execute(self.sql.delete_activities, {"ids": self.tuple_to_sql(ids)})
 
-        self.connection.commit()
-
-    # ========== ACTIVITIES IMPORTS ==========
-
-    def save_activities_import(
-        self, activities_import: ActivitiesImport
-    ) -> ActivitiesImport:
-        """Saves the activities_import into the table `activities_imports`"""
-        with self.connection.cursor() as cursor:
-            cursor.execute(self.sql.insert_activities_import, vars(activities_import))
-
-        self.connection.commit()
-        return activities_import
-
-    def get_activities_import_details(self, email: str) -> Dict[str, Any]:
-        """Gets the import from the table"""
-        with self.connection.cursor() as cursor:
-            cursor.execute(self.sql.get_activities_import, {"email": email})
-            res = cursor.fetchone()
-
-        return self.res_to_dict(res, ActivitiesImport.SCHEMA)
-
-    def update_activities_import_details(self, email: str, values: dict):
-        # pylint: disable-next=line-too-long
-        """Updates the data in the table `activities_imports`, values is dict {"column_name" : "new_value"}"""
-        with self.connection.cursor() as cursor:
-            cursor.execute(
-                self.sql.update_activities_import,
-                vars({"email": email, "value": self.dict_to_sql(values)}),
-            )
         self.connection.commit()

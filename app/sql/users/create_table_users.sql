@@ -9,5 +9,6 @@ CREATE TABLE
         strava_access_token varchar,
         strava_expires_date timestamp,
         strava_refresh_token varchar,
+        import_task_id varchar,
         CONSTRAINT users_pk PRIMARY KEY (email)
     );

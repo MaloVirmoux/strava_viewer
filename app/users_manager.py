@@ -45,6 +45,13 @@ class UsersManager:
             return self.postgres.save_user(User(user_details))
         return None
 
+    def update_user(self, user: User, details: dict) -> User:
+        """Updates the user with the given details, details is dict {"column_name" : "new_value"}"""
+        self.postgres.update_user_details(user.email, details)
+        for attribute, value in details.items():
+            setattr(user, attribute, value)
+        return User
+
     def verify_email(self, email: str):
         """Verifies if the provided email is valid"""
         return bool(re.fullmatch(EMAIL_REGEX, email))

@@ -8,7 +8,8 @@ INSERT INTO
         profile_picture_url,
         strava_access_token,
         strava_expires_date,
-        strava_refresh_token
+        strava_refresh_token,
+        import_task_id
     )
 VALUES
     (
@@ -20,6 +21,7 @@ VALUES
         %(profile_picture_url)s,
         %(strava_access_token)s,
         %(strava_expires_date)s,
-        %(strava_refresh_token)s
+        %(strava_refresh_token)s,
+        %(import_task_id)s
     )
 ON CONFLICT (email) DO NOTHING

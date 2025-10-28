@@ -14,6 +14,7 @@ class User:
         "strava_access_token",
         "strava_expires_date",
         "strava_refresh_token",
+        "import_task_id",
     )
 
     def __init__(self, user_details: dict):
@@ -26,6 +27,7 @@ class User:
         self.strava_access_token = user_details["strava_access_token"]
         self.strava_expires_date = user_details["strava_expires_date"]
         self.strava_refresh_token = user_details["strava_refresh_token"]
+        self.import_task_id = user_details["import_task_id"]
 
     def is_authenticated(self):
         """Mandatory flask function"""

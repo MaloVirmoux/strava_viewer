@@ -7,10 +7,11 @@ import urllib.parse
 import flask
 import flask_login
 from argon2 import PasswordHasher
+from celery.result import AsyncResult
 from dotenv import load_dotenv
 from flask_cors import CORS
 
-from .activities_imports_manager import ActivitiesImportsManager
+from . import tasks
 from .confs import SQL, Conf
 from .postgres import Postgres
 from .strava import Strava
@@ -39,7 +40,6 @@ postgres = Postgres(CONF, sql)
 strava = Strava(CONF, postgres)
 
 users_manager = UsersManager(postgres, password_hasher)
-activities_import_manager = ActivitiesImportsManager(postgres)
 
 
 @login_manager.user_loader
@@ -133,6 +133,7 @@ def sign_up():
             "strava_access_token": flask.session["strava_access_token"],
             "strava_expires_date": flask.session["strava_expires_date"],
             "strava_refresh_token": flask.session["strava_refresh_token"],
+            "import_task_id": None,
         }
         if user := users_manager.create_user(user_details):
             flask_login.login_user(
@@ -174,7 +175,16 @@ def home():
 @flask_login.login_required
 def update_activities():
     """PUT updates the activites of the user from Strava"""
-    activities_import_manager.import_user_activities(flask_login.current_user.email)
+    user = flask_login.current_user
+    if task_id := user.import_task_id:
+        task = AsyncResult(task_id)
+        if task.state == "RUNNING":
+            return task_id
+        task.revoke()
+
+    task_id = tasks.import_activites.delay(user.email)
+    users_manager.update_user(user, {"import_task_id": task_id})
+    return task_id
 
 
 if __name__ == "__main__":
