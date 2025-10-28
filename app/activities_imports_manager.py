@@ -1,5 +1,6 @@
 """Module used to manage the ActivitiesImports Manager"""
 
+import datetime
 from typing import Optional
 
 from celery.result import AsyncResult
@@ -9,7 +10,7 @@ from .postgres import Postgres
 
 
 class ActivitiesImportsManager:
-    """Import Logs Manager class to create and retrieve the imports"""
+    """Activities Imports Manager class to create and retrieve the activities imports"""
 
     def __init__(self, postgres: Postgres):
         self.postgres = postgres
@@ -30,6 +31,18 @@ class ActivitiesImportsManager:
 
     def get_last_import(self, email: str) -> Optional[ActivitiesImport]:
         """Gets the import associated with the provided email"""
-        if import_details := self.postgres.get_activities_import(email):
+        if import_details := self.postgres.get_activities_import_details(email):
             return ActivitiesImport(import_details)
         return None
+
+    def start_new_import(self, email: str):
+        """Updates the import log to start a new import"""
+        self.postgres.update_activities_import_details(
+            email, {"last_start_date": datetime.datetime.now()}
+        )
+
+    def end_new_import(self, email: str):
+        """Updates the import log to end the new import"""
+        self.postgres.update_activities_import_details(
+            email, {"last_end_date": datetime.datetime.now()}
+        )

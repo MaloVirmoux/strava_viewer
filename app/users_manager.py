@@ -21,7 +21,7 @@ class UsersManager:
 
     def get_user(self, email: str) -> Optional[User]:
         """Gets the user associated with the provided email"""
-        if user_details := self.postgres.get_user(email):
+        if user_details := self.postgres.get_user_details(email):
             return User(user_details)
         return None
 
@@ -42,7 +42,7 @@ class UsersManager:
             and self.verify_if_user_already_exists(user_details["email"])
         ):
             user_details["password"] = self.hash_password(user_details["password"])
-            return self.postgres.create_user(User(user_details))
+            return self.postgres.save_user(User(user_details))
         return None
 
     def verify_email(self, email: str):

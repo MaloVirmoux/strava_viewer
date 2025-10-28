@@ -8,8 +8,6 @@ class ActivitiesImport:
 
     SCHEMA = (
         "email",
-        "new_activities",
-        "total_activities",
         "last_task_id",
         "last_start_date",
         "last_end_date",
@@ -17,8 +15,6 @@ class ActivitiesImport:
 
     def __init__(self, import_details: dict):
         self.email = import_details["email"]
-        self.new_activities = import_details["new_activities"]
-        self.total_activities = import_details["total_activities"]
         self.task_id = import_details["task_id"]
         self.last_start_date = import_details["last_start_date"]
         self.last_end_date = import_details["last_end_date"]

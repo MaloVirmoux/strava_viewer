@@ -177,23 +177,5 @@ def update_activities():
     activities_import_manager.import_user_activities(flask_login.current_user.email)
 
 
-# To do : Continue get activities, manage response in case of error
-# @app.route("/get_activites", methods=["GET"])
-# def get_activites_list():
-#     """Gets all the activites from the user"""
-#     is_not_empty = True
-#     page = 1
-#     activites_list = []
-#     while is_not_empty:
-#         new_activities = strava.get_activities_list(page)
-#         is_not_empty = (
-#             len(new_activities) == conf.strava_activities_list["params"]["per_page"]
-#         )
-#         activites_list.extend(new_activities)
-#         page = page + 1
-
-#     return flask.Response(activites_list)
-
-
 if __name__ == "__main__":
     app.run(host=CONF.FLASK["host"], debug=True)

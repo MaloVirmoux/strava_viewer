@@ -49,13 +49,15 @@ class Conf:
                 },
             },
             "bearer_token": None,
-            "get_activities_list": {
+            "spam_limit": 0.8,
+            "get_activities": {
                 "url": "https://www.strava.com/api/v3/athlete/activities",
                 "params": {
-                    "before": None,
-                    "after": None,
                     "page": None,
                     "per_page": 100,
                 },
+            },
+            "get_activity": {
+                "url": "https://www.strava.com/api/v3/activities/{id}",
             },
         }

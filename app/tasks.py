@@ -1,9 +1,9 @@
 """Module used to run the async Celery tasks"""
 
-import datetime
-
 from celery import Celery
 
+from .activities_imports_manager import ActivitiesImportsManager
+from .activities_manager import ActivitiesManager
 from .confs import SQL, Conf
 from .postgres import Postgres
 from .strava import Strava
@@ -19,10 +19,15 @@ sql = SQL()
 postgres = Postgres(CONF, sql)
 strava = Strava(CONF, postgres)
 
+activities_imports_manager = ActivitiesImportsManager(postgres)
+activities_manager = ActivitiesManager(postgres, strava)
+
 
 @celery_app.task
 def import_activites(email: str):
     """Imports the activities from the Strava API to the database"""
-    postgres.update_activities_import(
-        email, {"last_start_date": datetime.datetime.now()}
-    )
+    activities_imports_manager.start_new_import(email)
+
+    activities_manager.update_activities(email)
+
+    activities_imports_manager.end_new_import(email)
