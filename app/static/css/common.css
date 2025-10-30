@@ -93,11 +93,28 @@ body {
     padding: 0 15px;
     font-size: 17px;
     font-weight: 400;
-    color: var(--dark-gray);
     text-decoration: none;
+}
+
+.wrapper .link-box.clickable {
+    background: var(--blue);
+}
+
+.wrapper .link-box.clickable:hover {
+    background: var(--dark-blue);
+}
+
+.wrapper .link-box.clickable * {
+    color: var(--white);
     cursor: pointer;
 }
 
-.wrapper .link-box:hover {
+.wrapper .link-box.locked {
     background: var(--light-gray);
+}
+
+.wrapper .link-box.locked * {
+    font-style: italic;
+    color: var(--dark-gray);
+    cursor: progress;
 }

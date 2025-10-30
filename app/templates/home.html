@@ -23,10 +23,10 @@
             <p>Lastest activity : {{ last_update }}</p>
         </div>
     </div>
-    <div class="link-box">
+    <div class="link-box clickable">
         <a href="map">View the map</a>
     </div>
-    <div id="update-activities" class="link-box">
+    <div id="synchronize-activities" class="link-box clickable">
         <p>Refresh the activities</p>
     </div>
     <h2>            
@@ -41,4 +41,10 @@
 {% block script %}
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script type="module" src="{{ url_for('static', filename='js/home.js') }}"></script>
+    {% if task_id %}
+        <script type="module">
+            import { onSuccessSynchronizeActivitiesAPI } from "{{ url_for('static', filename='js/home.js') }}";
+            onSuccessSynchronizeActivitiesAPI("{{ task_id }}")
+        </script>
+    {% endif %}
 {% endblock %}

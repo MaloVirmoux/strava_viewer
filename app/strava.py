@@ -164,15 +164,21 @@ class Strava:
 
         if self.pause_until:
             logger.info(
-                f"Next API call will be put on hold until {self.pause_until.strftime('%d/%m/%Y %H:%m:%S')}"  # pylint: disable=line-too-long
+                "Next API call will be put on hold until "
+                + self.pause_until.strftime("%d/%m/%Y %H:%M:%S UTC"),
             )
 
     def wait_if_necessary(self):
         """Waits if necessary to prevent to spam the API"""
         if self.pause_until:
-            if (to_wait := (self.pause_until - datetime.now()).total_seconds()) > 0:
+            if (
+                to_wait := (
+                    self.pause_until - datetime.now(timezone.utc)
+                ).total_seconds()
+            ) > 0:
                 logger.info(
-                    f"Waiting {to_wait} seconds until {self.pause_until.strftime('%d/%m/%Y %H:%m:%S')} UTC"  # pylint: disable=line-too-long
+                    f"Waiting {round(to_wait)} seconds until "
+                    + self.pause_until.strftime("%d/%m/%Y %H:%M:%S UTC")
                 )
                 time.sleep(to_wait)
         self.pause_until = None

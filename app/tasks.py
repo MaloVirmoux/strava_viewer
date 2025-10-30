@@ -24,10 +24,11 @@ strava = Strava(CONF, postgres)
 activities_manager = ActivitiesManager(postgres, strava)
 
 
-@celery_app.task
-def import_activites(user_details: dict):
-    """Imports the activities from the Strava API to the database"""
+@celery_app.task(bind=True)
+def synchronize_activities(self, user_details: dict) -> dict:
+    """Synchronizes the activities from the Strava API to the database"""
+    # De-serialize user
     user_details["strava_expires_date"] = datetime.fromtimestamp(
         user_details["strava_expires_date"]
     )
-    activities_manager.update_activities(User(user_details))
+    return activities_manager.synchronize_activities(User(user_details), self)

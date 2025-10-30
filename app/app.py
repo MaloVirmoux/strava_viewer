@@ -25,7 +25,7 @@ from typing import cast
 import flask
 import flask_login
 from argon2 import PasswordHasher
-from celery.result import AsyncResult
+from celery import Celery
 from dotenv import load_dotenv
 from flask_cors import CORS
 
@@ -42,7 +42,7 @@ logger.debug("Loading environment variables & conf")
 load_dotenv(f"{args.env}.env")
 CONF = Conf()
 
-logger.debug("Creating app & initiate login tools")
+logger.debug("Creating Flask app & initiate login tools")
 app = flask.Flask(__name__)
 CORS(app)
 
@@ -54,6 +54,13 @@ login_manager.init_app(app)
 current_user = cast(User, flask_login.current_user)
 
 password_hasher = PasswordHasher()
+
+logger.debug("Creating Celery app")
+celery_app = Celery(
+    "tasks",
+    broker=CONF.REDIS["broker_url"],
+    backend=CONF.REDIS["result_backend_url"],
+)
 
 logger.debug("Creating connectors to Postgres database & Strava API")
 sql = SQL()
@@ -201,6 +208,14 @@ def home():
     """GET returns the userpage if he's logged in"""
     logger.debug(f"Rendering /home for {current_user.email}")
     activities = activities_manager.get_activities(current_user)
+
+    if task_id := current_user.import_task_id:
+        task = celery_app.AsyncResult(task_id)
+        if task.state in ["PENDING", "SUCCESS"]:
+            task_id = None
+
+    logger.debug(f"HOME : {task_id}")
+
     return flask.render_template(
         "home.html",
         firstname=current_user.firstname,
@@ -210,27 +225,59 @@ def home():
         last_update=max(activity.start_date for activity in activities).strftime(
             "%Y/%m/%d - %H:%M"
         ),
+        task_id=task_id,
     )
 
 
-@app.route("/update_activities", methods=["PUT"])
+@app.route("/synchronize_activities", methods=["PUT"])
 @flask_login.login_required
-def update_activities():
-    """PUT updates the activites of the user from Strava"""
+def synchronize_activities():
+    """PUT synchronizes the activites of the user from Strava"""
     from . import tasks  # pylint: disable=import-outside-toplevel
 
     if task_id := current_user.import_task_id:
-        task_id = AsyncResult(task_id)
-        if task_id.state == "RUNNING":
-            logger.info(f"Update activity⸱ies : Task {task_id} found")
+        task = celery_app.AsyncResult(task_id)
+        if task.state not in ["PENDING", "SUCCESS"]:
+            logger.info(f"Synchronize activity⸱ies : Task {task_id} found")
             return task_id
         logger.debug(f"Revoking task {task_id}")
-        task_id.revoke()
+        task.revoke()
 
-    task_id = tasks.import_activites.delay(current_user.to_dict()).id
-    logger.info(f"Update activity⸱ies : Task {task_id} created")
+    task_id = tasks.synchronize_activities.delay(current_user.to_dict()).id
+    logger.info(f"Synchronize activity⸱ies : Task {task_id} created")
     users_manager.update_user(current_user, {"import_task_id": task_id})
     return task_id
+
+
+@app.route("/task_status/<task_id>", methods=["GET"])
+def task_status(task_id):
+    """GET status of the provided task_id"""
+    task = celery_app.AsyncResult(task_id)
+    match task.state:
+        case "PENDING" | "RETRY":
+            res = {
+                "state": task.state,
+                "status": "Waiting for the task",
+            }
+        case "STARTED" | "PROGRESS":
+            res = {
+                "state": task.state,
+                "status": task.info.get("status", "Synchronization is starting"),
+                "current": task.info.get("current", 0),
+                "total": task.info.get("total", 1),
+            }
+        case "SUCCESS":
+            res = {
+                "state": task.state,
+                "new_activities": task.info["new_activities"],
+                "total_activities": task.info["total_activities"],
+            }
+        case "FAILURE":
+            res = {
+                "state": task.state,
+                "status": str(task.info),
+            }
+    return flask.jsonify(res)
 
 
 if __name__ == "__main__":
