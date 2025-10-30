@@ -1,15 +1,15 @@
 /**
- * Adds all the listeners to update the labels and submit the form
+ * Adds the listener to toggle the visibility of the password input
  */
-function addFormListeners() {
-    const password_input = document.getElementById("password_input");
+function makeButtons() {
+    const password_input = document.getElementById("password-input");
     if (password_input) {
         password_input.addEventListener("input", () => {
             checkPasswordStrength();
         });
 
         document
-            .getElementById("show_password")
+            .getElementById("show-password")
             .addEventListener("click", (event) => {
                 event.target.classList.toggle("fa-eye-slash");
                 const toggled_type =
@@ -21,14 +21,14 @@ function addFormListeners() {
     }
 }
 
-addFormListeners();
+makeButtons();
 
 /**
  * Checks the strength of the password in the first field
  */
 function checkPasswordStrength() {
-    const password = document.getElementById("password_input").value;
-    document.getElementById("password_label").innerHTML = (() => {
+    const password = document.getElementById("password-input").value;
+    document.getElementById("password-label").innerHTML = (() => {
         if (password.length == 0) {
             return "Password";
         } else if (password.length < 8) {

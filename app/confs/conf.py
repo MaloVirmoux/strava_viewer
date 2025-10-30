@@ -1,7 +1,7 @@
 """Module used to create the conf both from the static values and the environment"""
 
-import datetime
 import os
+from datetime import timedelta
 
 
 # pylint: disable=invalid-name
@@ -12,7 +12,7 @@ class Conf:
         self.FLASK = {
             "host": os.environ["FLASK_HOST"],
             "secret_key": os.environ["FLASK_SECRET_KEY"],
-            "session_duration": datetime.timedelta(days=90),
+            "session_duration": timedelta(days=90),
         }
 
         self.POSTGRES = {
@@ -48,7 +48,15 @@ class Conf:
                     "grant_type": "authorization_code",
                 },
             },
-            "bearer_token": None,
+            "get_refresh_token": {
+                "url": "https://www.strava.com/api/v3/oauth/token",
+                "params": {
+                    "client_id": "169921",
+                    "client_secret": os.environ["STRAVA_CLIENT_SECRET"],
+                    "refresh_token": None,
+                    "grant_type": "refresh_token",
+                },
+            },
             "spam_limit": 0.8,
             "get_activities": {
                 "url": "https://www.strava.com/api/v3/athlete/activities",

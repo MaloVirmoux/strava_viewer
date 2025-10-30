@@ -17,13 +17,13 @@ VALUES
         %(email)s,
         %(id)s,
         %(sport)s,
-        %(name)s
-        %(description)s
-        %(track)s
-        %(start_date)s
-        %(distance)s
-        %(duration)s
-        %(speed)s
+        %(name)s,
+        %(description)s,
+        %(track)s,
+        %(start_date)s,
+        %(distance)s,
+        %(duration)s,
+        %(speed)s,
         %(elevation)s
     )
 ON CONFLICT (id) DO NOTHING

@@ -8,7 +8,7 @@ CREATE TABLE
         track text,
         start_date timestamp,
         distance float,
-        duration float,
+        duration interval,
         speed float,
         elevation float,
         CONSTRAINT activities_pk PRIMARY KEY (id)

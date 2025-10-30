@@ -1,8 +1,12 @@
 """Module used to manage the Activities Manager"""
 
-from .assets import Activity
+import logging
+
+from .assets import Activity, User
 from .postgres import Postgres
 from .strava import Strava
+
+logger = logging.getLogger(__name__)
 
 
 class ActivitiesManager:
@@ -12,35 +16,26 @@ class ActivitiesManager:
         self.postgres = postgres
         self.strava = strava
 
-    def update_activities(self, email: str):
+    def get_activities(self, user: User) -> list[Activity]:
+        """Returns the activities of the given user"""
+        return [
+            Activity(activity_details)
+            for activity_details in self.postgres.get_activities_details(user)
+        ]
+
+    def update_activities(self, user: User):
         """Imports the new activities, deletes the non-existing ones"""
-        imported_ids = [a.id for a in self.get_imported_activities(email)]
-        available_ids = [a.id for a in self.get_available_activities(email)]
+        imported_ids = [activity.id for activity in self.get_activities(user)]
+        available_ids = self.strava.get_activities_ids(user)
+        logger.info(
+            f"{len(imported_ids)} activity⸱ies in database & {len(available_ids)} activity⸱ies on API"  # pylint: disable=line-too-long
+        )
 
-        self.import_activities(available_ids not in imported_ids, email)
-        self.delete_activites(imported_ids not in available_ids)
-
-    def get_imported_activities(self, email: str) -> list[Activity]:
-        """Gets the activities from the database associated with the provided email"""
-        return [
-            Activity(activity_details)
-            for activity_details in self.postgres.get_activities(email)
-        ]
-
-    def get_available_activities(self, email: str) -> list[Activity]:
-        """Gets the available activities from Strava"""
-        return [
-            Activity(activity_details)
-            for activity_details in self.strava.get_activities(email)
-        ]
-
-    def import_activities(self, activity_ids: list[str], email: str):
-        """Gets the activities from Strava and saves it in the database"""
-        for activity_id in activity_ids:
+        to_import = list(set(available_ids) - set(imported_ids))
+        for activity_id in to_import:
             self.postgres.save_activity(
-                Activity({"email": email} | self.strava.get_activity(activity_id))
+                Activity(self.strava.get_activity(user, activity_id))
             )
 
-    def delete_activites(self, activities: list[str]):
-        """Deletes the activities from the database"""
-        self.postgres.delete_activities([activity.id for activity in activities])
+        to_delete = list(set(imported_ids) - set(available_ids))
+        self.postgres.delete_activities(to_delete)

@@ -1,8 +1,26 @@
 """Module used to communicate with the JS and run the app"""
 
 import argparse
-import datetime
+import logging
+
+logging_levels = {
+    "info": logging.INFO,
+    "warning": logging.WARNING,
+    "error": logging.ERROR,
+    "debug": logging.DEBUG,
+}
+parser = argparse.ArgumentParser()
+parser.add_argument("--log", choices=list(logging_levels.keys()), default="info")
+parser.add_argument("--env", choices=["local", "container"], default="container")
+args = parser.parse_args()
+
+logging.basicConfig(level=logging_levels[args.log])
+logger = logging.getLogger(__name__)
+
+# pylint: disable=wrong-import-position
 import urllib.parse
+from datetime import datetime
+from typing import cast
 
 import flask
 import flask_login
@@ -11,19 +29,20 @@ from celery.result import AsyncResult
 from dotenv import load_dotenv
 from flask_cors import CORS
 
-from . import tasks
+from .activities_manager import ActivitiesManager
+from .assets import User
 from .confs import SQL, Conf
 from .postgres import Postgres
 from .strava import Strava
 from .users_manager import UsersManager
 
-# Load env & conf
-parser = argparse.ArgumentParser()
-parser.add_argument("--env", choices=["local", "container"], default="container")
-load_dotenv(f"{parser.parse_args().env}.env")
+# pylint: enable=wrong-import-position
+
+logger.debug("Loading environment variables & conf")
+load_dotenv(f"{args.env}.env")
 CONF = Conf()
 
-# Create app & init login tools
+logger.debug("Creating app & initiate login tools")
 app = flask.Flask(__name__)
 CORS(app)
 
@@ -32,13 +51,16 @@ login_manager = flask_login.LoginManager()
 login_manager.login_view = "/login"
 login_manager.init_app(app)
 
+current_user = cast(User, flask_login.current_user)
+
 password_hasher = PasswordHasher()
 
-# Create connectors
+logger.debug("Creating connectors to Postgres database & Strava API")
 sql = SQL()
 postgres = Postgres(CONF, sql)
 strava = Strava(CONF, postgres)
 
+activities_manager = ActivitiesManager(postgres, strava)
 users_manager = UsersManager(postgres, password_hasher)
 
 
@@ -51,9 +73,11 @@ def load_user(user_email):
 @app.route("/", methods=["GET"])
 def index():
     """GET returns the homepage is the user is anonymous, or the userpage if he's logged in"""
-    if flask_login.current_user.is_authenticated:
+    if current_user.is_authenticated:
+        logger.debug("Redirecting to /home")
         return flask.redirect(flask.url_for("home"))
 
+    logger.debug("Rendering /index")
     return flask.render_template("index.html")
 
 
@@ -62,23 +86,29 @@ def login():
     """GET returns the login webpage\n
     POST logs in the user to the website"""
     if flask.request.method == "GET":
-        if flask_login.current_user.is_authenticated:
+        if current_user.is_authenticated:
+            logger.debug("Redirecting to /home")
             return flask.redirect(flask.url_for("home"))
 
+        logger.debug("Rendering /login")
         return flask.render_template("login.html")
 
     if flask.request.method == "POST":
         if users_manager.login_user(
             flask.request.form["email"], flask.request.form["password"]
         ):
+            logger.debug(f"Form approved : Login user {flask.request.form['email']}")
             flask_login.login_user(
                 users_manager.get_user(flask.request.form["email"]),
                 remember=True,
                 duration=CONF.FLASK["session_duration"],
             )
+            logger.debug("Redirecting to /home")
             return flask.redirect(flask.url_for("home"))
 
+        logger.warning("Form refused")
         flask.flash("Wrong email and/or password, please retry")
+        logger.debug("Redirecting to /login")
         return flask.redirect(flask.url_for("login"))
 
     return None
@@ -89,19 +119,19 @@ def sign_up():
     """GET returns the sign up webpage\n
     POST creates a new user"""
     if flask.request.method == "GET":
+        # If there's a valid client_code, render step 2
         if client_code := flask.request.args.get("code"):
-            CONF.STRAVA["get_token"]["params"]["code"] = client_code
-            if token := strava.get_token():
-                CONF.STRAVA["bearer_token"] = token["access_token"]
-
+            if token := strava.get_token(client_code):
+                logger.debug("Strava client_code approved : Moving on to step 2")
                 flask.session["strava_user_id"] = token["athlete"]["id"]
                 flask.session["profile_picture_url"] = token["athlete"]["profile"]
                 flask.session["strava_access_token"] = token["access_token"]
-                flask.session["strava_expires_date"] = datetime.datetime.fromtimestamp(
+                flask.session["strava_expires_date"] = datetime.fromtimestamp(
                     token["expires_at"]
                 )
                 flask.session["strava_refresh_token"] = token["refresh_token"]
 
+                logger.debug("Rendernig /sign_up at step 2")
                 return flask.render_template(
                     "sign_up.html",
                     step=2,
@@ -109,13 +139,16 @@ def sign_up():
                     lastname=token["athlete"]["lastname"],
                 )
 
+            logger.warning("Strava client_code refused")
             flask.flash("Strava sign up was unsuccessful, please retry")
 
+        # Else render step 1
         strava_login_url = "{url}?{params}".format(
             url=CONF.STRAVA["access_oauth"]["url"],
             params=urllib.parse.urlencode(CONF.STRAVA["access_oauth"]["params"]),
         )
 
+        logger.debug("Rendering /sign_up at step 1")
         return flask.render_template(
             "sign_up.html",
             step=1,
@@ -136,14 +169,18 @@ def sign_up():
             "import_task_id": None,
         }
         if user := users_manager.create_user(user_details):
+            logger.debug(f"Form approved, login in user {flask.request.form['email']}")
             flask_login.login_user(
                 user,
                 remember=True,
                 duration=CONF.FLASK["session_duration"],
             )
+            logger.debug("Redirecting to /home")
             return flask.redirect(flask.url_for("home"))
 
+        logger.warning("Form refused")
         flask.flash("An error occured, please retry")
+        logger.debug("Redirecting to /sign_up at step 1")
         return flask.redirect(flask.url_for("sign_up"))
 
     return None
@@ -152,7 +189,9 @@ def sign_up():
 @app.route("/logout", methods=["GET"])
 def logout():
     """GET logs out the user from the website"""
+    logger.debug(f"Logout user {current_user.email}")
     flask_login.logout_user()
+    logger.debug("Redirecting to /index")
     return flask.redirect(flask.url_for("index"))
 
 
@@ -160,14 +199,17 @@ def logout():
 @flask_login.login_required
 def home():
     """GET returns the userpage if he's logged in"""
-    user = flask_login.current_user
+    logger.debug(f"Rendering /home for {current_user.email}")
+    activities = activities_manager.get_activities(current_user)
     return flask.render_template(
         "home.html",
-        firstname=user.firstname,
-        lastname=user.lastname,
-        profile_picture_url=user.profile_picture_url,
-        number_of_activities=2,
-        last_update=datetime.datetime.now().strftime("%Y/%m/%d - %H:%M"),
+        firstname=current_user.firstname,
+        lastname=current_user.lastname,
+        profile_picture_url=current_user.profile_picture_url,
+        number_of_activities=len(activities),
+        last_update=max(activity.start_date for activity in activities).strftime(
+            "%Y/%m/%d - %H:%M"
+        ),
     )
 
 
@@ -175,15 +217,19 @@ def home():
 @flask_login.login_required
 def update_activities():
     """PUT updates the activites of the user from Strava"""
-    user = flask_login.current_user
-    if task_id := user.import_task_id:
-        task = AsyncResult(task_id)
-        if task.state == "RUNNING":
-            return task_id
-        task.revoke()
+    from . import tasks  # pylint: disable=import-outside-toplevel
 
-    task_id = tasks.import_activites.delay(user.email)
-    users_manager.update_user(user, {"import_task_id": task_id})
+    if task_id := current_user.import_task_id:
+        task_id = AsyncResult(task_id)
+        if task_id.state == "RUNNING":
+            logger.info(f"Update activity⸱ies : Task {task_id} found")
+            return task_id
+        logger.debug(f"Revoking task {task_id}")
+        task_id.revoke()
+
+    task_id = tasks.import_activites.delay(current_user.to_dict()).id
+    logger.info(f"Update activity⸱ies : Task {task_id} created")
+    users_manager.update_user(current_user, {"import_task_id": task_id})
     return task_id
 
 

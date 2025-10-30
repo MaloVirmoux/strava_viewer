@@ -8,7 +8,7 @@
 
 {% block wrapper %}
     <div class="profile">
-        <img src="{{ profile_picture_url }}" class="profile_picture" alt="Profile picture">
+        <img src="{{ profile_picture_url }}" class="profile-picture" alt="Profile picture">
         <div>
             <h1>Hey {{ firstname }} {{ lastname }} !</h1>
             <h2>
@@ -20,14 +20,14 @@
                     {{ number_of_activities }} activities imported
                 {% endif %}
             </h2>
-            <p>Last update : {{ last_update }}</p>
+            <p>Lastest activity : {{ last_update }}</p>
         </div>
     </div>
     <div class="link-box">
         <a href="map">View the map</a>
     </div>
-    <div class="link-box">
-        <a href="">Refresh the activities</a>
+    <div id="update-activities" class="link-box">
+        <p>Refresh the activities</p>
     </div>
     <h2>            
         <a href="manage">Manage your account</a>
@@ -36,4 +36,9 @@
         <a href="logout">Log out</a>
     </h2>
     </div>
+{% endblock %}
+
+{% block script %}
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script type="module" src="{{ url_for('static', filename='js/home.js') }}"></script>
 {% endblock %}

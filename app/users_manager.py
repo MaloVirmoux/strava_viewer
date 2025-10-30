@@ -30,6 +30,8 @@ class UsersManager:
         user = self.get_user(email)
         try:
             self.password_hasher.verify(user.password, password)
+        except AttributeError:
+            return False
         except argon2.exceptions.Argon2Error:
             return False
         return True
@@ -47,7 +49,7 @@ class UsersManager:
 
     def update_user(self, user: User, details: dict) -> User:
         """Updates the user with the given details, details is dict {"column_name" : "new_value"}"""
-        self.postgres.update_user_details(user.email, details)
+        self.postgres.update_user_details(user, details)
         for attribute, value in details.items():
             setattr(user, attribute, value)
         return User
