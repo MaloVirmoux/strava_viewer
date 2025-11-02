@@ -3,6 +3,7 @@ import { synchronizeActivitiesAPI, getTaskStatusAPI } from "./app_requests.js";
 const synchronizeActivitiesButton = document.getElementById(
     "synchronize-activities"
 );
+const totalActivities = document.getElementById("total-activities");
 let intervalSynchronizeActivitiesAPI = null;
 
 makeButtonSynchronizeActivitiesAPI();
@@ -40,9 +41,23 @@ export function onSuccessSynchronizeActivitiesAPI(task_id) {
  * @param {object} res Status of the API
  */
 function onSuccessGetTaskStatusAPI(res) {
-    if (res.state == "SUCCESS") {
+    console.log(res);
+    if (res.state == "SUCCESS" || res.state == "FAILURE") {
         clearInterval(intervalSynchronizeActivitiesAPI);
         unlockButton();
+        if (res.state == "SUCCESS") {
+            switch (res.total_activities) {
+                case 0:
+                    totalActivities.textContent = "No activity imported";
+                    break;
+                case 1:
+                    totalActivities.textContent = "1 activity imported";
+                    break;
+                default:
+                    totalActivities.textContent = `${res.total_activities} activities imported`;
+                    break;
+            }
+        }
     } else {
         synchronizeActivitiesButton.firstElementChild.textContent = res.status;
     }

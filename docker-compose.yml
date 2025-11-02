@@ -4,7 +4,7 @@ services:
         container_name: web
         ports: 
             - 5000:5000
-        command: python -m app.app --log debug
+        command: python -m app.app --loglevel DEBUG
         volumes: 
             - .:/usr/src/app
         env_file:
@@ -16,7 +16,7 @@ services:
     worker:
         build: .
         container_name: celery_worker
-        command: celery --app app.tasks worker --loglevel DEBUG
+        command: celery --app app.app worker --loglevel DEBUG
         volumes: 
             - .:/usr/src/app
         env_file:
@@ -25,18 +25,18 @@ services:
             - web
             - redis
 
-    # dashboard:
-    #     build: .
-    #     container_name: celery_dashboard
-    #     command: celery--app app.tasks flower --port=5555 --broker=redis://redis:6379/0
-    #     ports:
-    #         - 5555:5555
-    #     env_file:
-    #         - container.env
-    #     depends_on:
-    #         - web
-    #         - redis
-    #         - worker
+    dashboard:
+        build: .
+        container_name: celery_dashboard
+        command: celery --broker=redis://redis:6379 flower --port=5555 
+        ports:
+            - 5555:5555
+        env_file:
+            - container.env
+        depends_on:
+            - web
+            - redis
+            - worker
 
     postgres:
         container_name: postgres_database
