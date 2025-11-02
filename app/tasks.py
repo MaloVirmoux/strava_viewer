@@ -1,28 +1,16 @@
-"""Module used to run the async Celery tasks"""
+"""Module used to define the async Celery tasks"""
 
-import datetime
+from datetime import datetime
 
-from celery import Celery
-
-from .confs import SQL, Conf
-from .postgres import Postgres
-from .strava import Strava
-
-CONF = Conf()
-celery_app = Celery(
-    "tasks",
-    broker=CONF.REDIS["broker_url"],
-    backend=CONF.REDIS["result_backend_url"],
-)
-
-sql = SQL()
-postgres = Postgres(CONF, sql)
-strava = Strava(CONF, postgres)
+from .assets import User
+from .setup import activities_manager, celery_app
 
 
-@celery_app.task
-def import_activites(email: str):
-    """Imports the activities from the Strava API to the database"""
-    postgres.update_activities_import(
-        email, {"last_start_date": datetime.datetime.now()}
+@celery_app.task(bind=True)
+def synchronize_activities(self, user_details: dict) -> dict:
+    """Synchronizes the activities from the Strava API to the database"""
+    # De-serialize user
+    user_details["strava_expires_date"] = datetime.fromtimestamp(
+        user_details["strava_expires_date"]
     )
+    return activities_manager.synchronize_activities(User(user_details), self)

@@ -21,7 +21,7 @@ class UsersManager:
 
     def get_user(self, email: str) -> Optional[User]:
         """Gets the user associated with the provided email"""
-        if user_details := self.postgres.get_user(email):
+        if user_details := self.postgres.get_user_details(email):
             return User(user_details)
         return None
 
@@ -30,6 +30,8 @@ class UsersManager:
         user = self.get_user(email)
         try:
             self.password_hasher.verify(user.password, password)
+        except AttributeError:
+            return False
         except argon2.exceptions.Argon2Error:
             return False
         return True
@@ -42,8 +44,15 @@ class UsersManager:
             and self.verify_if_user_already_exists(user_details["email"])
         ):
             user_details["password"] = self.hash_password(user_details["password"])
-            return self.postgres.create_user(User(user_details))
+            return self.postgres.save_user(User(user_details))
         return None
+
+    def update_user(self, user: User, details: dict) -> User:
+        """Updates the user with the given details, details is dict {"column_name" : "new_value"}"""
+        self.postgres.update_user_details(user, details)
+        for attribute, value in details.items():
+            setattr(user, attribute, value)
+        return User
 
     def verify_email(self, email: str):
         """Verifies if the provided email is valid"""

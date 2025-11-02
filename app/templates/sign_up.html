@@ -10,13 +10,13 @@
 {% block wrapper %}
     <h1>Create your account</h1>
     {% include "flash_message.html" %}
-    <form method="post" id="sign_up_form">
+    <form method="post" id="sign-up-form">
         {% if step == 1 %}
         <div class="text">
             <h2>Step 1 - Link your Strava</h2>
         </div>
-        <div class="link-box">
-            <a id="strava_login" href="{{ strava_login_url }}">Login to Strava</a>
+        <div class="link-box clickable">
+            <a id="strava-login" href="{{ strava_login_url }}">Login to Strava</a>
         </div>
         {% elif step == 2 %}
         <div class="text">
@@ -26,12 +26,12 @@
             <input
                 type="email"
                 name="email"
-                id="email_input"
+                id="email-input"
                 placeholder=""
                 autocomplete="email"
                 required
             />
-            <label id="email_label" for="email_input">
+            <label id="email-label" for="email-input">
                 Email
             </label>
         </div>
@@ -39,31 +39,31 @@
             <input
                 type="password"
                 name="password"
-                id="password_input"
+                id="password-input"
                 placeholder=""
                 pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
                 autocomplete="new-password"
                 required
             />
-            <label id="password_label" for="password_input">
+            <label id="password-label" for="password-input">
                 Password
             </label>
             <i
-                id="show_password"
-                class="fa-solid fa-eye show_password"
+                id="show-password"
+                class="fa-solid fa-eye show-password"
             ></i>
         </div>
         <div class="input-box">
             <input
                 type="text"
                 name="firstname"
-                id="firstname_input"
+                id="firstname-input"
                 placeholder=""
                 value="{{ firstname }}"
                 autocomplete="given-name"
                 required
             />
-            <label id="firstname_label" for="firstname_input">
+            <label id="firstname-label" for="firstname-input">
                 First name
             </label>
         </div>
@@ -71,18 +71,18 @@
             <input
                 type="text"
                 name="lastname"
-                id="lastname_input"
+                id="lastname-input"
                 placeholder=""
                 value="{{ lastname }}"
                 autocomplete="family-name"
                 required
             />
-            <label id="lastname_label" for="lastname_input">
+            <label id="lastname-label" for="lastname-input">
                 Last name
             </label>
         </div>
         <div class="input-box button submit">
-            <input type="submit" value="Register Now" />
+            <input type="submit" value="Register now" />
         </div>
         {% endif %}
     </form>
@@ -93,6 +93,5 @@
 {% endblock %}
 
 {% block script %}
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script type="module" src="{{ url_for('static', filename='js/sign_up.js') }}"></script>
 {% endblock %}

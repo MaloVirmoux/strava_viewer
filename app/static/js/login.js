@@ -1,11 +1,11 @@
 /**
- * Adds all the listeners to update the labels and submit the form
+ * Adds the listener to toggle the visibility of the password input
  */
-function addFormListeners() {
-    const password_input = document.getElementById("password_input");
+function makeButtons() {
+    const password_input = document.getElementById("password-input");
 
     document
-        .getElementById("show_password")
+        .getElementById("show-password")
         .addEventListener("click", (event) => {
             event.target.classList.toggle("fa-eye-slash");
             const toggled_type =
@@ -16,4 +16,4 @@ function addFormListeners() {
         });
 }
 
-addFormListeners();
+makeButtons();

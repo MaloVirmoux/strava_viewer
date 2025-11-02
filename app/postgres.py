@@ -1,11 +1,14 @@
 """Module used to communicate with the PostgreSQL Database"""
 
+import logging
 from typing import Any, Dict, Optional, Tuple
 
 import psycopg2
 
-from .assets import ActivitiesImport, User
+from .assets import Activity, User
 from .confs import SQL, Conf
+
+logger = logging.getLogger(__name__)
 
 
 class Postgres:
@@ -33,95 +36,67 @@ class Postgres:
             return dict(zip(schema, res))
         return {}
 
-    def dict_to_sql(self, column_value: dict) -> str:
-        """Converts a dictionary to a SQL string for update queries"""
-        return ", ".join(
-            [f"{column} = '{value}'" for column, value in column_value.items()]
-        )
+    def dict_keys_to_sql(self, column_value: dict) -> str:
+        """Converts a dictionary to a SQL string for UPDATE queries"""
+        return ", ".join([f"{column} = %({column})s" for column in column_value.keys()])
+
+    def tuple_to_sql(self, values: tuple) -> str:
+        """Converts a tuple to a SQL string for IN queries"""
+        return ", ".join([f"'{value}'" for value in values])
 
     # ========== USERS ==========
 
-    def create_user(self, user: User) -> User:
+    def save_user(self, user: User):
         """Saves the user into the table `users`"""
         with self.connection.cursor() as cursor:
             cursor.execute(self.sql.insert_user, vars(user))
+            self.connection.commit()
 
-        self.connection.commit()
-        return user
+        logger.debug(f"User {user.email} saved to the database")
 
-    def get_user(self, email: str) -> Dict[str, Any]:
+    def get_user_details(self, email: str) -> Dict[str, Any]:
         """Gets the user from the table `users`"""
         with self.connection.cursor() as cursor:
             cursor.execute(self.sql.get_user, {"email": email})
             res = cursor.fetchone()
 
+        logger.debug(f"Getting details from {email}")
         return self.res_to_dict(res, User.SCHEMA)
 
-    def update_user(self, email: str, values: dict):
-        """Updates the data in the table `users`, values is dict {"column_name" : "new_value"}"""
+    def update_user_details(self, user: User, details: dict):
+        """Updates the data in the table `users`, details is dict {"column_name" : "new_value"}"""
         with self.connection.cursor() as cursor:
             cursor.execute(
-                self.sql.update_user,
-                vars({"email": email, "value": self.dict_to_sql(values)}),
+                self.sql.update_user.format(columns=self.dict_keys_to_sql(details)),
+                {"email": user.email} | details,
             )
+            self.connection.commit()
 
-        self.connection.commit()
+        logger.debug(f"Updating detail⸱s {list(details.keys())} of user {user.email}")
 
-    # ========== ACTIVITIES IMPORTS ==========
+    # ========== ACTIVITIES ==========
 
-    def create_activities_import(
-        self, activities_import: ActivitiesImport
-    ) -> ActivitiesImport:
-        """Saves the activities_import into the table `activities_imports`"""
+    def save_activity(self, activity: Activity):
+        """Saves the activity into the table `activities`"""
         with self.connection.cursor() as cursor:
-            cursor.execute(self.sql.insert_activities_import, vars(activities_import))
+            cursor.execute(self.sql.insert_activity, vars(activity))
+            self.connection.commit()
 
-        self.connection.commit()
-        return activities_import
+        logger.debug(f"Activity {activity.id} saved to the database")
 
-    def get_activities_import(self, email: str) -> Dict[str, Any]:
-        """Gets the import from the table"""
+    def get_activities_details(self, user: User) -> list[dict[str, Any]]:
+        """Gets the activities details from the table `activities`"""
         with self.connection.cursor() as cursor:
-            cursor.execute(self.sql.get_activities_import, {"email": email})
-            res = cursor.fetchone()
+            cursor.execute(self.sql.get_activities, {"email": user.email})
+            res = cursor.fetchall()
 
-        return self.res_to_dict(res, ActivitiesImport.SCHEMA)
+        logger.debug(f"Getting activity⸱ies from {user.email}")
+        return [self.res_to_dict(row, Activity.SCHEMA) for row in res]
 
-    def update_activities_import(self, email: str, values: dict):
-        # pylint: disable-next=line-too-long
-        """Updates the data in the table `activities_imports`, values is dict {"column_name" : "new_value"}"""
+    def delete_activities(self, ids: list):
+        """Deletes activities from the table `activities` given a list of ids"""
         with self.connection.cursor() as cursor:
-            cursor.execute(
-                self.sql.update_activities_import,
-                vars({"email": email, "value": self.dict_to_sql(values)}),
-            )
-        self.connection.commit()
+            cursor.execute(self.sql.delete_activities, {"ids": self.tuple_to_sql(ids)})
+            self.connection.commit()
 
-    # def get_activities(
-    #     self,
-    #     *,
-    #     user_id: int,
-    #     from_date=None,
-    #     to_date=None,
-    #     min_lat=None,
-    #     max_lat=None,
-    #     min_long=None,
-    #     max_long=None,
-    # ) -> pl.DataFrame:
-    #     """Returns the activities from the user as a Polar DataFrame"""
-    #     activities_filter = {
-    #         "user_id": user_id,
-    #         "from_date": from_date,
-    #         "to_date": to_date,
-    #         "min_lat": min_lat,
-    #         "max_lat": max_lat,
-    #         "min_long": min_long,
-    #         "max_long": max_long,
-    #     }
-    #     with self.connection.cursor() as cursor:
-    #         cursor.execute(
-    #             self.sql.format_request(self.sql.user_login, activities_filter)
-    #         )
-
-    #     self.connection.commit()
-    #     return pl.DataFrame()
+        logger.debug(f"Deleting activity⸱ies {ids}")

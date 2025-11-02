@@ -1,4 +1,4 @@
 UPDATE users
 SET
-    %(value)s
+    {columns}
 WHERE email = %(email)s
