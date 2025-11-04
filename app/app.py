@@ -52,7 +52,7 @@ def logout():
 @flask_app.route("/home", methods=["GET"])
 @flask_login.login_required
 def home():
-    """GET returns /home if he's logged in"""
+    """GET returns /home if the user is logged in"""
     return routes.home()
 
 
@@ -67,6 +67,13 @@ def synchronize_activities():
 def task_status(task_id: str):
     """GET the status of the provided task_id"""
     return routes.task_status(task_id)
+
+
+@flask_app.route("/map", methods=["GET"])
+@flask_login.login_required
+def map():
+    """GET returns /map if the user is logged in"""
+    return routes.map()
 
 
 if __name__ == "__main__":
