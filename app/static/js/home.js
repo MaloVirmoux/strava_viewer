@@ -41,7 +41,6 @@ export function onSuccessSynchronizeActivitiesAPI(task_id) {
  * @param {object} res Status of the API
  */
 function onSuccessGetTaskStatusAPI(res) {
-    console.log(res);
     if (res.state == "SUCCESS" || res.state == "FAILURE") {
         clearInterval(intervalSynchronizeActivitiesAPI);
         unlockButton();

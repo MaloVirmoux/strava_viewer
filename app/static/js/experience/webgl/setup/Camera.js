@@ -9,9 +9,9 @@ export default class Camera extends THREE.OrthographicCamera {
      */
     constructor(size) {
         super(-size.ratio, size.ratio, 1, -1);
-        this.position.set(3, 3, 3);
+        this.position.set(0, 0, 3);
         this.lookAt(new THREE.Vector3(0, 0, 0));
-        this.zoom = 0.1;
+        this.zoom = 0.5;
 
         this.updateProjectionMatrix();
     }

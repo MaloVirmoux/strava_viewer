@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 import CanvaSize from "./setup/CanvaSize";
 import Scene from "./setup/Scene";
@@ -6,6 +7,7 @@ import Camera from "./setup/Camera";
 import Renderer from "./setup/Renderer";
 import Composer from "./setup/Composer";
 import RenderPass from "./pass/RenderPass";
+import Tile from "./object/Tile";
 
 /** Class used to create the render */
 export default class Render {
@@ -21,10 +23,28 @@ export default class Render {
         this.camera = new Camera(this.canvaSize);
         this.scene.add(this.camera);
 
-        const geometry = new THREE.BoxGeometry(1, 1, 1);
-        const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-        const mesh = new THREE.Mesh(geometry, material);
-        this.scene.add(mesh);
+        this.controls = new OrbitControls(this.camera, this.container);
+
+        const pointLight1 = new THREE.PointLight(0xff9000, 50);
+        pointLight1.position.set(3, 2, 3);
+        const pointLight2 = new THREE.PointLight(0x0090ff, 50);
+        pointLight2.position.set(-3, 2, 3);
+        const pointLight3 = new THREE.PointLight(0x90ff90, 50);
+        pointLight3.position.set(0, -3, 3);
+        const pointLightHelper1 = new THREE.PointLightHelper(pointLight1, 1);
+        const pointLightHelper2 = new THREE.PointLightHelper(pointLight2, 1);
+        const pointLightHelper3 = new THREE.PointLightHelper(pointLight3, 1);
+        this.scene.add(
+            pointLight1,
+            pointLightHelper1,
+            pointLight2,
+            pointLightHelper2,
+            pointLight3,
+            pointLightHelper3
+        );
+
+        const axisHelper = new THREE.AxesHelper(3);
+        this.scene.add(new Tile(), axisHelper);
 
         this.renderer = new Renderer(this.canvaSize, this.container);
         this.composer = new Composer(this.canvaSize, this.renderer);
