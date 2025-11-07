@@ -1,5 +1,16 @@
 import * as THREE from "three";
 
+// ==================== Face division ====================
+
+/*
+            vertex0
+              ⟋⟍
+      edge0 ⟋    ⟍ edge2
+          ⟋        ⟍
+vertex1 ⟋____________⟍ vertex2
+             edge1
+*/
+
 /**
  * Subdivises faces into smaller faces
  * @param {list} faces List of nine values, or list of list of nine values, each representing a face to subdivise
@@ -7,12 +18,6 @@ import * as THREE from "three";
  * @returns {list} List of values representing the faces
  */
 export function subdiviseFaces(faces, n_divisions) {
-    //          v1
-    //          ⟋⟍
-    //  edge3 ⟋    ⟍ edge1
-    //      ⟋        ⟍
-    // v3 ⟋_____________⟍ v2
-    //         edge2
     if (typeof faces[0] === "number") {
         faces = [faces];
     }
@@ -34,14 +39,14 @@ export function subdiviseFaces(faces, n_divisions) {
 
 /**
  * Computes the vertices from the provided list of values
- * @param {list} face List of 9 floats representing a face ([v1.x, v1.y, v1.z, ...])
+ * @param {list} face List of nine values representing a face (ex: [v1.x, v1.y, v1.z, ..., v3.z])
  * @returns {list} List of three THREE.Vector3 vertices
  */
 function computeVertices(face) {
-    const vertex1 = new THREE.Vector3(face[0], face[1], face[2]);
-    const vertex2 = new THREE.Vector3(face[3], face[4], face[5]);
-    const vertex3 = new THREE.Vector3(face[6], face[7], face[8]);
-    return [vertex1, vertex2, vertex3];
+    const vertex0 = new THREE.Vector3(face[0], face[1], face[2]);
+    const vertex1 = new THREE.Vector3(face[3], face[4], face[5]);
+    const vertex2 = new THREE.Vector3(face[6], face[7], face[8]);
+    return [vertex0, vertex1, vertex2];
 }
 
 /**
@@ -50,7 +55,7 @@ function computeVertices(face) {
  * @returns {list} List of three THREE.Vector3 edges
  */
 function computeEdges(vertices) {
-    const edge1 = {
+    const edge0 = {
         fromVertex: vertices[0],
         toVertex: vertices[1],
         edge: new THREE.Vector3(
@@ -59,7 +64,7 @@ function computeEdges(vertices) {
             vertices[1].z - vertices[0].z
         ),
     };
-    const edge2 = {
+    const edge1 = {
         fromVertex: vertices[1],
         toVertex: vertices[2],
         edge: new THREE.Vector3(
@@ -68,7 +73,7 @@ function computeEdges(vertices) {
             vertices[2].z - vertices[1].z
         ),
     };
-    const edge3 = {
+    const edge2 = {
         fromVertex: vertices[2],
         toVertex: vertices[0],
         edge: new THREE.Vector3(
@@ -77,7 +82,7 @@ function computeEdges(vertices) {
             vertices[0].z - vertices[2].z
         ),
     };
-    return [edge1, edge2, edge3];
+    return [edge0, edge1, edge2];
 }
 
 /**
@@ -86,10 +91,6 @@ function computeEdges(vertices) {
  * @returns {list} Returns both the newly created vertex and the splitted edge
  */
 function computeDivision(edges) {
-    // const longestEdge = Math.max(
-    //     ...[edges[0], edges[1], edges[2]].map((edge) => edge.edge.length())
-    // );
-
     const longestEdge = edges.reduce(
         (edge, previous) =>
             edge.edge.length() > previous.edge.length() ? edge : previous,
@@ -116,18 +117,18 @@ function computeNewFaces(vertices, newVertex, edges, longestEdge) {
     switch (longestEdge) {
         case edges[0]:
             return [
-                createNewFace(newVertex, vertices[0], vertices[2]),
-                createNewFace(vertices[1], newVertex, vertices[2]),
+                createNewFace(vertices[0], newVertex, vertices[2]),
+                createNewFace(newVertex, vertices[1], vertices[2]),
             ];
         case edges[1]:
             return [
-                createNewFace(vertices[1], vertices[0], newVertex),
-                createNewFace(newVertex, vertices[0], vertices[2]),
+                createNewFace(vertices[0], vertices[1], newVertex),
+                createNewFace(vertices[0], newVertex, vertices[2]),
             ];
         case edges[2]:
             return [
-                createNewFace(vertices[1], vertices[0], newVertex),
-                createNewFace(vertices[1], newVertex, vertices[2]),
+                createNewFace(vertices[0], vertices[1], newVertex),
+                createNewFace(newVertex, vertices[1], vertices[2]),
             ];
     }
 }
@@ -145,4 +146,83 @@ function createNewFace(vertex1, vertex2, vertex3) {
         ...[vertex2.x, vertex2.y, vertex2.z],
         ...[vertex3.x, vertex3.y, vertex3.z],
     ];
+}
+
+// ==================== UVs ====================
+
+/**
+ * Computes the UVs from the faces
+ * @param {list} faces List of nine values, or list of list of nine values, each representing a face to compute the UVs of
+ * @param {list} axis Ordered list of the two axis to compute the uvs on (ex: ["x", "y"])
+ * @returns {list} List of the UVs
+ */
+export function computeUVs(faces, axis) {
+    if (typeof faces[0] === "number") {
+        faces = [faces];
+    }
+
+    const range = computeRange(faces, axis);
+
+    const uvs = [];
+    faces.forEach((face) => {
+        uvs.push(...computeFaceUVs(face, axis, range));
+    });
+
+    return uvs;
+}
+
+/**
+ * Computes the maximum range of the faces vertices
+ * @param {list} faces List of nine values, or list of list of nine values, each representing a face to compute the range froms
+ * @param {list} axis List of the two axis to compute the uvs on (ex: ["x", "y"])
+ * @returns {number} Maximum range of the faces vertices
+ */
+function computeRange(faces, axis) {
+    let ignoredAxis;
+    if (!axis.includes("x")) ignoredAxis = 0;
+    if (!axis.includes("y")) ignoredAxis = 1;
+    if (!axis.includes("z")) ignoredAxis = 2;
+
+    const flatFaces = faces.flat(Infinity);
+    for (ignoredAxis; ignoredAxis < flatFaces.length; ignoredAxis += 3) {
+        flatFaces[ignoredAxis] = 0;
+    }
+
+    return Math.max(-Math.min(...flatFaces), Math.max(...flatFaces));
+}
+
+/**
+ * Computes the UVs from the face
+ * @param {list} faces List of nine values, representing a face to compute the UVs of
+ * @param {list} axis List of the two axis to compute the uvs on (ex: ["x", "y"])
+ * @param {number} range Maximum range of the faces vertices
+ * @returns List of eighteen coords representing the face UVs
+ */
+function computeFaceUVs(face, axis, range) {
+    const getVertex = (i) => {
+        return face.slice(i, i + 3);
+    };
+    const uvs = [];
+    for (let i = 0; i < face.length; i += 3) {
+        uvs.push(...computeVertexUVs(getVertex(i), axis, range));
+    }
+
+    return uvs;
+}
+
+/**
+ * Compute the UVs for a vertex
+ * @param {list} vertex List of three values representing a vertex
+ * @param {list} axis List of the two axis to compute the uvs on (ex: ["x", "y"])
+ * @param {number} range Maximum range of the UVs
+ * @returns List of two coords representing the vertex UVs
+ */
+function computeVertexUVs(vertex, axis, range) {
+    const getAxisIndex = (axis) => {
+        return { x: 0, y: 1, z: 2 }[axis];
+    };
+    const computeUV = (index) => {
+        return (vertex[index] + range) / (range * 2);
+    };
+    return [computeUV(getAxisIndex(axis[0])), computeUV(getAxisIndex(axis[1]))];
 }

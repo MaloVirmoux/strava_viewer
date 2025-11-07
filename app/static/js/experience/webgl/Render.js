@@ -44,7 +44,9 @@ export default class Render {
         );
 
         const axisHelper = new THREE.AxesHelper(3);
-        this.scene.add(new Tile(), axisHelper);
+        const tile = new Tile();
+        this.scene.add(tile, axisHelper);
+        console.log(tile);
 
         this.renderer = new Renderer(this.canvaSize, this.container);
         this.composer = new Composer(this.canvaSize, this.renderer);
