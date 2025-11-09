@@ -6,21 +6,21 @@ export function synchronizeActivitiesAPI(func) {
         type: "PUT",
         url: "http://localhost:5000/synchronize_activities",
         xhrFields: { withCredentials: true },
-        success: (task_id) => {
-            func(task_id);
+        success: (taskId) => {
+            func(taskId);
         },
     });
 }
 
 /**
  * Gets the status of the provided task
- * @param {string} task_id ID of the task
+ * @param {string} taskId ID of the task
  * @param {function} func Function to call on success
  */
-export function getTaskStatusAPI(task_id, func) {
+export function getTaskStatusAPI(taskId, func) {
     $.ajax({
         type: "GET",
-        url: `http://localhost:5000/task_status/${task_id}`,
+        url: `http://localhost:5000/task_status/${taskId}`,
         xhrFields: { withCredentials: true },
         success: (res) => {
             func(res);
