@@ -1,5 +1,6 @@
 import * as THREE from "three";
-import { subdiviseFaces, computeUVs, verticesToPositions } from "./utils";
+import { params } from "../../params";
+import { computeUVs, subdiviseFaces, verticesToPositions } from "./utils";
 
 /** Class used to create a tile */
 export default class Tile extends THREE.Mesh {
@@ -13,35 +14,29 @@ export default class Tile extends THREE.Mesh {
     }
 }
 
-/* Doc
-                                              ⮝                                                                                    ⮝
-                                              ║  Coord Y                                                                            ║  Coord Y
-                                             (2)                                                                                   (2)
-                                       ██████ ║ ██████                                                                       ██████ ║ ██████
-              Face 4 & 5            ███       ║       ███            Face 6 & 7                                           ███       ║       ███
-                              ██████          ║          ██████                                                     ██████          ║          ██████
-                           ███                ║                ███                                               ███                ║                ███
-                     ██████       Face 0      ║                   ██████                                   ██████                   ║                   ██████
-                  ███                         ║                         ███                             ███             Face 16     ║     Face 17             ███
-               (1)┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈║┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈(3)                       (1)┈┈┈                         ║                         ┈┈┈(3)
-               ███                            ║                   ┈┈┈┈┈┈   ███                       ███   ┈┈┈┈┈┈                   ║                   ┈┈┈┈┈┈   ███
-               ███                            ║             ┈┈┈┈┈┈         ███   Face 8 & 9          ███         ┈┈┈┈┈┈             ║             ┈┈┈┈┈┈         ███
-               ███      Face 1                ║       ┈┈┈┈┈┈               ███                       ███               ┈┈┈┈┈┈       ║       ┈┈┈┈┈┈               ███
-               ███                            ║ ┈┈┈┈┈┈                     ███                       ███                     ┈┈┈┈┈┈ ║ ┈┈┈┈┈┈         Face 18     ███
-            ═══███════════════════════════════╬════════════════════════════███═══➤  Coord X      ═══███═══════════════════════════(0)═══════════════════════════███═══➤  Coord X
-               ███                     ┈┈┈┈┈┈ ║                            ███                       ███     Face 21         ┈┈┈┈┈┈ ║ ┈┈┈┈┈┈                     ███
-               ███               ┈┈┈┈┈┈       ║           Face 2           ███                       ███               ┈┈┈┈┈┈       ║       ┈┈┈┈┈┈               ███
-Face 14 & 15   ███         ┈┈┈┈┈┈             ║                            ███                       ███         ┈┈┈┈┈┈             ║             ┈┈┈┈┈┈         ███
-               ███   ┈┈┈┈┈┈                   ║                            ███                       ███   ┈┈┈┈┈┈                   ║                   ┈┈┈┈┈┈   ███
-               (6)┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈║┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈(4)                       (6)┈┈┈             Face 20     ║     Face 19             ┈┈┈(4)
-                  ███                         ║                         ███                             ███                         ║                         ███
-                     ██████                   ║ Face 3            ██████                                   ██████                   ║                   ██████
-                           ███                ║                ███                                               ███                ║                ███
-                              ██████          ║          ██████                                                     ██████          ║          ██████
-            Face 12 & 13            ███       ║       ███            Face 10 & 11                                         ███       ║       ███
-                                       ██████ ║ ██████                                                                       ██████ ║ ██████
-                                             (5)                                                                                   (5)
-                                              ║                                                                                     ║
+/* Schema of the hexagon 
+                                     ⮝                                                                  ⮝
+                                     ║  Coord Y                                                          ║  Coord Y
+                                    (2)                                                                 (2)
+              Face 4 & 5      ██████ ║ ██████      Face 6 & 7                                     ██████ ║ ██████
+                           ███       ║       ███                                               ███       ║       ███
+                     ██████          ║          ██████                                   ██████          ║          ██████
+                  ███        Face 0  ║                ███                             ███        Face 16 ║ Face 17        ███
+               (1)┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈║┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈(3)                       (1)┈┈┈┈┈┈             ║             ┈┈┈┈┈┈(3)
+               ███                   ║             ┈┈┈┈┈┈███                       ███      ┈┈┈          ║          ┈┈┈      ███
+               ███      Face 1       ║       ┈┈┈┈┈┈      ███   Face 8 & 9          ███         ┈┈┈┈┈┈    ║    ┈┈┈┈┈┈         ███
+               ███                   ║ ┈┈┈┈┈┈            ███                       ███               ┈┈┈ ║ ┈┈┈       Face 18 ███
+            ═══███═══════════════════╬═══════════════════███═══➤  Coord X      ═══███══════════════════(0)══════════════════███═══➤  Coord X
+               ███            ┈┈┈┈┈┈ ║                   ███                       ███ Face 22       ┈┈┈ ║ ┈┈┈               ███
+Face 14 & 15   ███      ┈┈┈┈┈┈       ║       Face 2      ███                       ███         ┈┈┈┈┈┈    ║    ┈┈┈┈┈┈         ███
+               ███┈┈┈┈┈┈             ║                   ███                       ███      ┈┈┈          ║          ┈┈┈      ███
+               (6)┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈║┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈(4)                       (6)┈┈┈┈┈┈             ║             ┈┈┈┈┈┈(4)
+                  ███                ║  Face 3        ███                             ███        Face 21 ║ Face 20         ███
+                     ██████          ║          ██████                                   ██████          ║           ██████
+                           ███       ║       ███                                               ███       ║       ███
+            Face 12 & 13      ██████ ║ ██████      Face 10 & 11                                   ██████ ║ ██████
+                                    (5)                                                                 (5)
+                                     ║                                                                   ║
 */
 
 /** Class used to create a tile */
@@ -52,9 +47,9 @@ class TileGeometry extends THREE.BufferGeometry {
     constructor() {
         super();
 
-        const COORD_Y = 1,
+        const COORD_Y = params.tile.size,
             COORD_X = (COORD_Y * Math.sqrt(3)) / 2,
-            COORD_Z = 1;
+            COORD_Z = params.tile.height;
 
         // prettier-ignore
         const V1_FLOOR = new THREE.Vector3(- COORD_X,   COORD_Y / 2,       0),
@@ -103,7 +98,7 @@ class TileGeometry extends THREE.BufferGeometry {
             [V5_ROOF_, V0_ROOF_, V6_ROOF_], // Face 20 (Ceiling #5)
             [V6_ROOF_, V0_ROOF_, V1_ROOF_], // Face 21 (Ceiling #6)
         ];
-        roofVertices = subdiviseFaces(roofVertices, 4);
+        roofVertices = subdiviseFaces(roofVertices, params.tile.division);
         const ORIGIN_ROOF = new THREE.Vector3(0, 0, COORD_Z),
             HORIZONTAL_ROOF_AXIS = new THREE.Vector3(1, 0, 0),
             VERTICAL_ROOF_AXIS = new THREE.Vector3(0, 1, 0);
@@ -155,10 +150,10 @@ class TileMaterial extends THREE.MeshStandardMaterial {
         // image.src = "/app/static/img/height_map.jpg";
         image.src = "/app/static/img/uv_test.jpg";
         super({
-            color: 0xffffff,
+            color: "#ffffff",
             roughness: 0.4,
-            wireframe: true,
-            // map: texture,
+            // wireframe: true,
+            map: texture,
             // displacementMap: texture,
             // displacementScale: 0.2,
         });

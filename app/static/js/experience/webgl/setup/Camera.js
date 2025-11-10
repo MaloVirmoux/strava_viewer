@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { params } from "../../params";
 import CanvaSize from "./CanvaSize";
 
 /** Class used to create the scene camera */
@@ -9,9 +10,9 @@ export default class Camera extends THREE.OrthographicCamera {
      */
     constructor(size) {
         super(-size.ratio, size.ratio, 1, -1);
-        this.position.set(0, 0, 3);
+        this.position.set(...params.setup.camera.positon);
         this.lookAt(new THREE.Vector3(0, 0, 0));
-        this.zoom = 0.5;
+        this.zoom = params.setup.camera.zoom;
 
         this.updateProjectionMatrix();
     }

@@ -42,21 +42,6 @@ function subdiviseFace(face) {
     ];
 }
 
-// export function subdiviseFacesEdge(faces, nDivisions) {
-//     if (typeof faces[0] === "number") {
-//         faces = [faces];
-//     }
-
-//     for (let division = 0; division < nDivisions; division++) {
-//         let newFaces = [];
-//         faces.forEach((face) => {
-//             newFaces.push(...subdiviseFace(face));
-//         });
-//         faces = newFaces;
-//     }
-//     return faces;
-// }
-
 /**
  * Returns the vertex in the middle of two others vertices
  * @param {THREE.Vector3} vertex0 First vertex to compute the middle from
