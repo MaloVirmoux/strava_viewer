@@ -227,3 +227,7 @@ class Routes:
                     "status": str(task.info),
                 }
         return flask.jsonify(res)
+
+    def map(self):
+        """GET returns /map"""
+        return flask.render_template("map.html")

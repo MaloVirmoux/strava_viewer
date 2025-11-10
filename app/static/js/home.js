@@ -1,4 +1,4 @@
-import { synchronizeActivitiesAPI, getTaskStatusAPI } from "./app_requests.js";
+import { synchronizeActivitiesAPI, getTaskStatusAPI } from "./appRequests.js";
 
 const synchronizeActivitiesButton = document.getElementById(
     "synchronize-activities"
@@ -29,10 +29,10 @@ function callSynchronizeActivitiesAPI() {
 /**
  * Calls the API to get updates from the task
  */
-export function onSuccessSynchronizeActivitiesAPI(task_id) {
+export function onSuccessSynchronizeActivitiesAPI(taskId) {
     lockButton();
     intervalSynchronizeActivitiesAPI = setInterval(() => {
-        getTaskStatusAPI(task_id, onSuccessGetTaskStatusAPI);
+        getTaskStatusAPI(taskId, onSuccessGetTaskStatusAPI);
     }, 1000);
 }
 
@@ -41,12 +41,11 @@ export function onSuccessSynchronizeActivitiesAPI(task_id) {
  * @param {object} res Status of the API
  */
 function onSuccessGetTaskStatusAPI(res) {
-    console.log(res);
     if (res.state == "SUCCESS" || res.state == "FAILURE") {
         clearInterval(intervalSynchronizeActivitiesAPI);
         unlockButton();
         if (res.state == "SUCCESS") {
-            switch (res.total_activities) {
+            switch (res.totalActivities) {
                 case 0:
                     totalActivities.textContent = "No activity imported";
                     break;
@@ -54,7 +53,7 @@ function onSuccessGetTaskStatusAPI(res) {
                     totalActivities.textContent = "1 activity imported";
                     break;
                 default:
-                    totalActivities.textContent = `${res.total_activities} activities imported`;
+                    totalActivities.textContent = `${res.totalActivities} activities imported`;
                     break;
             }
         }

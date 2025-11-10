@@ -1,0 +1,26 @@
+{
+    "name": "strava_viewer",
+    "version": "1.0.0",
+    "description": "JS Package to run Strava Viewer website",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/MaloVirmoux/strava_viewer.git"
+    },
+    "keywords": [],
+    "author": "Malo Virmoux <malo.virmoux.2@gmail.com>",
+    "license": "ISC",
+    "type": "commonjs",
+    "bugs": {
+        "url": "https://github.com/MaloVirmoux/strava_viewer/issues"
+    },
+    "homepage": "https://github.com/MaloVirmoux/strava_viewer#readme",
+    "dependencies": {
+        "three": "^0.181.0",
+        "vite": "^7.1.12"
+    }
+}
